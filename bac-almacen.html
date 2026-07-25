@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAC · Almacén</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e0dbd2;
+    --accent: #1a3a2a;
+    --accent-light: #2d6248;
+    --accent-bg: #e8f0ec;
+    --text: #1a1a18;
+    --text2: #6b6760;
+    --warn: #b45309;
+    --danger: #991b1b;
+    --ok: #166534;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Topbar ── */
+  .topbar {
+    background: var(--accent); color: white;
+    padding: 14px 24px; display: flex; align-items: center; gap: 14px;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar .logo { font-size: 22px; }
+  .topbar h1 { font-family: var(--display); font-size: 17px; font-weight: 700; flex: 1; }
+  .topbar .user { font-size: 12px; opacity: .8; }
+
+  .nav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; gap: 4px;
+    position: sticky; top: 50px; z-index: 40;
+  }
+  .nav-item {
+    padding: 13px 18px; font-size: 14px; font-weight: 500; color: var(--text2);
+    cursor: pointer; border-bottom: 2.5px solid transparent;
+  }
+  .nav-item.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 64px; }
+
+  .demo-note {
+    background: #fef9c3; border: 1px solid #fde68a;
+    border-radius: 10px; padding: 8px 14px; font-size: 12px; color: #78350f;
+    margin-bottom: 18px; text-align: center;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  h2.page-title { font-family: var(--display); font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 18px; }
+
+  /* ── Recepción: rescates pendientes ── */
+  .rescates { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .rescate-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer;
+  }
+  .rescate-card.sel { border-color: var(--accent); border-width: 2px; }
+  .rescate-card .r-icon { font-size: 24px; }
+  .rescate-card .r-info { flex: 1; }
+  .rescate-card .r-name { font-weight: 600; font-size: 14px; }
+  .rescate-card .r-sub { font-size: 12px; color: var(--text2); }
+  .badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+  .b-pend { background: #fef9c3; color: #78350f; }
+  .b-done { background: #dcfce7; color: var(--ok); }
+  .b-kg   { background: var(--accent-bg); color: var(--accent); font-family: var(--display); }
+
+  /* ── Tabla de clasificación ── */
+  .clasif-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; margin-bottom: 16px; display: none;
+  }
+  .clasif-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .clasif-head h3 { font-family: var(--display); font-size: 15px; }
+  .clasif-head .ch-sub { font-size: 12px; color: var(--text2); }
+
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+  th {
+    text-align: left; padding: 10px 14px; font-size: 10px; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--text2); background: var(--surface2);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+
+  select.cell-input, input.cell-input {
+    padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13px; font-family: var(--sans); color: var(--text);
+    outline: none; appearance: none;
+  }
+  input.cell-input { width: 76px; }
+  select.cell-input { min-width: 120px; }
+
+  /* Semáforo */
+  .semaforo { display: flex; gap: 5px; }
+  .sem-btn {
+    width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid transparent;
+    cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center;
+    background: var(--surface2); opacity: .35; transition: all .15s;
+  }
+  .sem-btn.on { opacity: 1; transform: scale(1.08); }
+  .sem-v.on { border-color: #16a34a; background: #dcfce7; }
+  .sem-a.on { border-color: #d97706; background: #fef3c7; }
+  .sem-r.on { border-color: #dc2626; background: #fee2e2; }
+
+  .add-row-btn {
+    margin: 12px 18px; padding: 10px 16px;
+    background: var(--surface2); border: 1px dashed var(--border);
+    border-radius: 10px; font-size: 13px; color: var(--text2); cursor: pointer;
+    font-family: var(--sans);
+  }
+
+  .clasif-foot {
+    padding: 14px 18px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .sem-resumen { display: flex; gap: 14px; font-size: 13px; }
+  .sem-resumen span { display: flex; align-items: center; gap: 5px; font-weight: 600; }
+
+  .btn-primary {
+    padding: 13px 26px;
+    background: var(--accent); border: none; border-radius: 12px;
+    color: white; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: var(--display);
+  }
+  .btn-primary:active { background: var(--accent-light); }
+
+  /* ── Inventario ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .kpi .kpi-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+  .kpi .kpi-val { font-family: var(--display); font-size: 26px; font-weight: 700; color: var(--accent); margin-top: 4px; }
+  .kpi .kpi-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .kpi.rojo .kpi-val { color: var(--danger); }
+  .kpi.amarillo .kpi-val { color: var(--warn); }
+
+  .filtros { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filtro-btn {
+    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text2);
+    cursor: pointer; font-family: var(--sans);
+  }
+  .filtro-btn.on { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+
+  .inv-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .dot-v { background: #16a34a; } .dot-a { background: #d97706; } .dot-r { background: #dc2626; }
+  .ub-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .ub-seco  { background: #f3ead9; color: #92600a; }
+  .ub-refri { background: #dbeafe; color: #1d4ed8; }
+  .ub-cong  { background: #e0e7ff; color: #4338ca; }
+
+  .alerta-row td { background: #fff5f5; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: white; padding: 12px 22px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; z-index: 500;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 12px 16px; }
+    .nav { padding: 0 8px; overflow-x: auto; }
+    .container { padding: 16px 12px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">📦</span>
+  <h1>BAC · Almacén</h1>
+  <span class="user">Almacenista: María López</span>
+</div>
+
+<div class="nav">
+  <div class="nav-item active" onclick="switchTab('recepcion', this)">📥 Recepción</div>
+  <div class="nav-item" onclick="switchTab('inventario', this)">🧮 Inventario</div>
+</div>
+
+<div class="container">
+  <div class="demo-note">🧪 Prototipo demostrativo — datos de ejemplo</div>
+
+  <!-- ══════════ RECEPCIÓN ══════════ -->
+  <div class="page active" id="page-recepcion">
+    <h2 class="page-title">Recepción de alimentos</h2>
+    <p class="page-sub">Rescates y donativos que llegaron hoy. Selecciona uno para clasificar artículo por artículo con el semáforo de frescura.</p>
+
+    <div class="rescates" id="lista-rescates"></div>
+
+    <div class="clasif-panel" id="clasif-panel">
+      <div class="clasif-head">
+        <div>
+          <h3 id="cl-titulo">—</h3>
+          <div class="ch-sub" id="cl-sub">—</div>
+        </div>
+        <span class="badge b-kg" id="cl-kg">— kg declarados</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Artículo</th>
+              <th>Grupo</th>
+              <th>Kg</th>
+              <th>Semáforo de frescura</th>
+              <th>Destino</th>
+            </tr>
+          </thead>
+          <tbody id="clasif-rows"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="agregarFila()">＋ Agregar artículo</button>
+      <div class="clasif-foot">
+        <div class="sem-resumen">
+          <span>🟢 <span id="sum-v">0</span> kg</span>
+          <span>🟡 <span id="sum-a">0</span> kg</span>
+          <span>🔴 <span id="sum-r">0</span> kg</span>
+        </div>
+        <button class="btn-primary" onclick="confirmarRecepcion()">✅ Confirmar recepción → inventario</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ INVENTARIO ══════════ -->
+  <div class="page" id="page-inventario">
+    <h2 class="page-title">Control de inventario</h2>
+    <p class="page-sub">Existencias por producto y ubicación. Los 🔴 requieren salida inmediata; los 🟡 deben salir en el próximo reparto.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Total en existencia</div>
+        <div class="kpi-val" id="kpi-total">—</div>
+        <div class="kpi-sub">kilogramos</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">🟢 Conservable</div>
+        <div class="kpi-val" id="kpi-v">—</div>
+        <div class="kpi-sub">kg en buen estado</div>
+      </div>
+      <div class="kpi amarillo">
+        <div class="kpi-label">🟡 Poca vida útil</div>
+        <div class="kpi-val" id="kpi-a">—</div>
+        <div class="kpi-sub">salir en próximo reparto</div>
+      </div>
+      <div class="kpi rojo">
+        <div class="kpi-label">🔴 Salida urgente</div>
+        <div class="kpi-val" id="kpi-r">—</div>
+        <div class="kpi-sub">hoy mismo o merma</div>
+      </div>
+    </div>
+
+    <div class="filtros" id="filtros">
+      <button class="filtro-btn on" data-ub="todos" onclick="setFiltro(this)">Todo</button>
+      <button class="filtro-btn" data-ub="seco" onclick="setFiltro(this)">🏬 Almacén seco</button>
+      <button class="filtro-btn" data-ub="refri" onclick="setFiltro(this)">❄️ Refrigerador</button>
+      <button class="filtro-btn" data-ub="cong" onclick="setFiltro(this)">🧊 Congelador</button>
+    </div>
+
+    <div class="inv-panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Grupo</th>
+              <th>Ubicación</th>
+              <th>Frescura</th>
+              <th style="text-align:right">Kg</th>
+              <th>Recibido</th>
+            </tr>
+          </thead>
+          <tbody id="inv-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GRUPOS = ['Frutas y verduras','Proteína','Lácteos','Panadería','Abarrotes','No comestible'];
+const UBICS = { seco:'🏬 Seco', refri:'❄️ Refrigerador', cong:'🧊 Congelador' };
+
+// ── Rescates que llegan hoy (vienen del módulo de rescate) ──
+const RESCATES = [
+  { id:'RES-0522-1', icon:'🚚', origen:'Ruta matutina · Juan Pérez',  detalle:'Soriana Centro + HEB Valle', kg:385, estado:'pend',
+    prellenado:[
+      { art:'Manzana',        grupo:'Frutas y verduras', kg:60 },
+      { art:'Plátano',        grupo:'Frutas y verduras', kg:45 },
+      { art:'Tomate',         grupo:'Frutas y verduras', kg:38 },
+      { art:'Lechuga',        grupo:'Frutas y verduras', kg:22 },
+      { art:'Pollo entero',   grupo:'Proteína',          kg:55 },
+      { art:'Leche entera',   grupo:'Lácteos',           kg:60 },
+      { art:'Yogurt bebible', grupo:'Lácteos',           kg:25 },
+      { art:'Pan dulce',      grupo:'Panadería',         kg:50 },
+      { art:'Arroz',          grupo:'Abarrotes',         kg:30 },
+    ]},
+  { id:'RES-0522-2', icon:'🚚', origen:'Ruta vespertina · Pedro Solís', detalle:'Walmart Universidad + Costco', kg:290, estado:'pend',
+    prellenado:[
+      { art:'Naranja',        grupo:'Frutas y verduras', kg:80 },
+      { art:'Zanahoria',      grupo:'Frutas y verduras', kg:35 },
+      { art:'Carne molida',   grupo:'Proteína',          kg:40 },
+      { art:'Queso panela',   grupo:'Lácteos',           kg:20 },
+      { art:'Pan de caja',    grupo:'Panadería',         kg:45 },
+      { art:'Pasta',          grupo:'Abarrotes',         kg:40 },
+      { art:'Jabón de baño',  grupo:'No comestible',     kg:30 },
+    ]},
+  { id:'DON-0522-3', icon:'🎁', origen:'Donativo directo · Red BAMX', detalle:'Tarima de abarrotes surtidos', kg:420, estado:'pend',
+    prellenado:[
+      { art:'Frijol negro',   grupo:'Abarrotes',         kg:150 },
+      { art:'Aceite vegetal', grupo:'Abarrotes',         kg:90 },
+      { art:'Atún en lata',   grupo:'Abarrotes',         kg:100 },
+      { art:'Galletas',       grupo:'Abarrotes',         kg:80 },
+    ]},
+];
+
+// ── Inventario existente ──
+let INVENTARIO = [
+  { prod:'Arroz',           grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:220, fecha:'19 jul' },
+  { prod:'Frijol bayo',     grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:180, fecha:'18 jul' },
+  { prod:'Pasta',           grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:95,  fecha:'20 jul' },
+  { prod:'Aceite vegetal',  grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:75,  fecha:'15 jul' },
+  { prod:'Atún en lata',    grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:120, fecha:'12 jul' },
+  { prod:'Manzana',         grupo:'Frutas y verduras', ub:'refri', sem:'a', kg:48,  fecha:'20 jul' },
+  { prod:'Plátano',         grupo:'Frutas y verduras', ub:'seco',  sem:'r', kg:15,  fecha:'19 jul' },
+  { prod:'Tomate',          grupo:'Frutas y verduras', ub:'refri', sem:'a', kg:32,  fecha:'20 jul' },
+  { prod:'Lechuga',         grupo:'Frutas y verduras', ub:'refri', sem:'r', kg:8,   fecha:'19 jul' },
+  { prod:'Pollo entero',    grupo:'Proteína',          ub:'cong',  sem:'v', kg:110, fecha:'17 jul' },
+  { prod:'Carne molida',    grupo:'Proteína',          ub:'cong',  sem:'v', kg:65,  fecha:'16 jul' },
+  { prod:'Leche entera',    grupo:'Lácteos',           ub:'refri', sem:'a', kg:90,  fecha:'20 jul' },
+  { prod:'Queso panela',    grupo:'Lácteos',           ub:'refri', sem:'v', kg:35,  fecha:'21 jul' },
+  { prod:'Pan dulce',       grupo:'Panadería',         ub:'seco',  sem:'a', kg:40,  fecha:'21 jul' },
+  { prod:'Jabón de baño',   grupo:'No comestible',     ub:'seco',  sem:'v', kg:55,  fecha:'10 jul' },
+];
+
+let rescateSel = null;
+let filas = [];
+let filtroUb = 'todos';
+
+// ── Tabs ──
+function switchTab(tab, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'inventario') renderInventario();
+}
+
+// ── Recepción ──
+function renderRescates() {
+  document.getElementById('lista-rescates').innerHTML = RESCATES.map(r => `
+    <div class="rescate-card ${rescateSel === r.id ? 'sel' : ''}" onclick="abrirRescate('${r.id}')">
+      <div class="r-icon">${r.icon}</div>
+      <div class="r-info">
+        <div class="r-name">${r.id} · ${r.origen}</div>
+        <div class="r-sub">${r.detalle}</div>
+      </div>
+      <span class="badge b-kg">${r.kg} kg</span>
+      <span class="badge ${r.estado === 'done' ? 'b-done' : 'b-pend'}">${r.estado === 'done' ? '✓ Recibido' : 'Por recibir'}</span>
+    </div>
+  `).join('');
+}
+
+function abrirRescate(id) {
+  const r = RESCATES.find(x => x.id === id);
+  if (!r || r.estado === 'done') return;
+  rescateSel = id;
+  filas = r.prellenado.map((f, i) => ({ id:i, ...f, sem:'v', dest: sugerirDestino(f.grupo) }));
+
+  document.getElementById('cl-titulo').textContent = `${r.icon} ${r.id} — ${r.origen}`;
+  document.getElementById('cl-sub').textContent = `${r.detalle} · El chofer preclasificó por grupo; aquí se detalla artículo, estado y destino.`;
+  document.getElementById('cl-kg').textContent = `${r.kg} kg declarados`;
+  document.getElementById('clasif-panel').style.display = 'block';
+  renderRescates();
+  renderFilas();
+  document.getElementById('clasif-panel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function sugerirDestino(grupo) {
+  if (grupo === 'Proteína') return 'cong';
+  if (grupo === 'Lácteos' || grupo === 'Frutas y verduras') return 'refri';
+  return 'seco';
+}
+
+function renderFilas() {
+  document.getElementById('clasif-rows').innerHTML = filas.map(f => `
+    <tr>
+      <td><input class="cell-input" style="width:150px" value="${f.art}" onchange="filas[${f.id}].art = this.value"></td>
+      <td>
+        <select class="cell-input" onchange="filas[${f.id}].grupo = this.value">
+          ${GRUPOS.map(g => `<option ${g === f.grupo ? 'selected' : ''}>${g}</option>`).join('')}
+        </select>
+      </td>
+      <td><input class="cell-input" type="number" min="0" value="${f.kg}" onchange="filas[${f.id}].kg = Number(this.value)||0; updSemResumen()"></td>
+      <td>
+        <div class="semaforo">
+          <button class="sem-btn sem-v ${f.sem === 'v' ? 'on' : ''}" title="Verde: conservable" onclick="setSem(${f.id},'v')">🟢</button>
+          <button class="sem-btn sem-a ${f.sem === 'a' ? 'on' : ''}" title="Amarillo: poca vida útil" onclick="setSem(${f.id},'a')">🟡</button>
+          <button class="sem-btn sem-r ${f.sem === 'r' ? 'on' : ''}" title="Rojo: desechar / salida inmediata" onclick="setSem(${f.id},'r')">🔴</button>
+        </div>
+      </td>
+      <td>
+        <select class="cell-input" onchange="filas[${f.id}].dest = this.value">
+          <option value="seco"  ${f.dest === 'seco'  ? 'selected' : ''}>🏬 Almacén seco</option>
+          <option value="refri" ${f.dest === 'refri' ? 'selected' : ''}>❄️ Refrigerador</option>
+          <option value="cong"  ${f.dest === 'cong'  ? 'selected' : ''}>🧊 Congelador</option>
+          <option value="merma" ${f.dest === 'merma' ? 'selected' : ''}>🗑️ Merma (desecho)</option>
+        </select>
+      </td>
+    </tr>
+  `).join('');
+  updSemResumen();
+}
+
+function setSem(fid, s) {
+  filas[fid].sem = s;
+  if (s === 'r') filas[fid].dest = 'merma';
+  renderFilas();
+}
+
+function updSemResumen() {
+  const sum = s => filas.filter(f => f.sem === s).reduce((t,f) => t + f.kg, 0);
+  document.getElementById('sum-v').textContent = sum('v');
+  document.getElementById('sum-a').textContent = sum('a');
+  document.getElementById('sum-r').textContent = sum('r');
+}
+
+function agregarFila() {
+  filas.push({ id: filas.length, art:'', grupo:'Abarrotes', kg:0, sem:'v', dest:'seco' });
+  renderFilas();
+}
+
+function confirmarRecepcion() {
+  const r = RESCATES.find(x => x.id === rescateSel);
+  if (!r) return;
+  const hoy = '22 jul';
+  let aInv = 0, aMerma = 0;
+  filas.forEach(f => {
+    if (!f.art || f.kg <= 0) return;
+    if (f.dest === 'merma') { aMerma += f.kg; return; }
+    aInv += f.kg;
+    const existente = INVENTARIO.find(i => i.prod.toLowerCase() === f.art.toLowerCase() && i.ub === f.dest && i.sem === f.sem);
+    if (existente) existente.kg += f.kg;
+    else INVENTARIO.push({ prod:f.art, grupo:f.grupo, ub:f.dest, sem:f.sem, kg:f.kg, fecha:hoy });
+  });
+  r.estado = 'done';
+  rescateSel = null;
+  document.getElementById('clasif-panel').style.display = 'none';
+  renderRescates();
+  showToast(`Recepción confirmada: ${aInv} kg a inventario${aMerma ? `, ${aMerma} kg a merma` : ''} ✓`);
+}
+
+// ── Inventario ──
+function setFiltro(btn) {
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  filtroUb = btn.dataset.ub;
+  renderInventario();
+}
+
+function renderInventario() {
+  const rows = INVENTARIO.filter(i => filtroUb === 'todos' || i.ub === filtroUb)
+    .sort((a,b) => (a.sem === 'r' ? 0 : a.sem === 'a' ? 1 : 2) - (b.sem === 'r' ? 0 : b.sem === 'a' ? 1 : 2));
+
+  document.getElementById('inv-rows').innerHTML = rows.map(i => `
+    <tr class="${i.sem === 'r' ? 'alerta-row' : ''}">
+      <td style="font-weight:600">${i.prod}</td>
+      <td style="color:var(--text2)">${i.grupo}</td>
+      <td><span class="ub-badge ub-${i.ub}">${UBICS[i.ub]}</span></td>
+      <td><span class="dot dot-${i.sem}"></span>${i.sem === 'v' ? 'Conservable' : i.sem === 'a' ? 'Poca vida' : 'Urgente'}</td>
+      <td style="text-align:right; font-weight:600; font-family:var(--display)">${i.kg.toLocaleString()}</td>
+      <td style="color:var(--text2)">${i.fecha}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px">Sin productos en esta ubicación</td></tr>';
+
+  const tot = s => INVENTARIO.filter(i => !s || i.sem === s).reduce((t,i) => t + i.kg, 0);
+  document.getElementById('kpi-total').textContent = tot().toLocaleString();
+  document.getElementById('kpi-v').textContent = tot('v').toLocaleString();
+  document.getElementById('kpi-a').textContent = tot('a').toLocaleString();
+  document.getElementById('kpi-r').textContent = tot('r').toLocaleString();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show';
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => { t.className = 'toast'; }, 3200);
+}
+
+renderRescates();
+renderInventario();
+</script>
+</body>
+</html>

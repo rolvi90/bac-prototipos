@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAC · Trabajo social</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e0dbd2;
+    --accent: #1a3a2a;
+    --accent-light: #2d6248;
+    --accent-bg: #e8f0ec;
+    --text: #1a1a18;
+    --text2: #6b6760;
+    --warn: #b45309;
+    --danger: #991b1b;
+    --ok: #166534;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .topbar {
+    background: var(--accent); color: white;
+    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar .logo { font-size: 22px; }
+  .topbar h1 { font-family: var(--display); font-size: 16px; font-weight: 700; flex: 1; }
+  .topbar .user { font-size: 11px; opacity: .8; }
+
+  .container { max-width: 760px; margin: 0 auto; padding: 20px 16px 64px; }
+
+  .demo-note {
+    background: #fef9c3; border: 1px solid #fde68a;
+    border-radius: 10px; padding: 8px 14px; font-size: 12px; color: #78350f;
+    margin-bottom: 16px; text-align: center;
+  }
+
+  /* ── Selector de comunidad ── */
+  .com-select {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 16px;
+  }
+  .com-chip {
+    padding: 10px 16px; border-radius: 12px; white-space: nowrap;
+    background: var(--surface); border: 1px solid var(--border);
+    font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer;
+  }
+  .com-chip.on { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+
+  /* ── Import banner ── */
+  .import-card {
+    background: var(--surface); border: 1px dashed var(--accent-light); border-radius: 14px;
+    padding: 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .import-card .ic-icon { font-size: 28px; }
+  .import-card .ic-txt { flex: 1; }
+  .import-card .ic-title { font-size: 14px; font-weight: 600; }
+  .import-card .ic-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .btn-import {
+    padding: 10px 16px; background: var(--accent-bg); border: 1px solid var(--accent-light);
+    border-radius: 10px; color: var(--accent); font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: var(--sans); white-space: nowrap;
+  }
+  .btn-import:active { background: #d1e5da; }
+
+  /* ── Resumen del día ── */
+  .resumen-bar {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 18px; margin-bottom: 16px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;
+  }
+  .rb-item .rb-val { font-family: var(--display); font-size: 24px; font-weight: 700; color: var(--accent); }
+  .rb-item .rb-lbl { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
+  .rb-item.si .rb-val { color: var(--ok); }
+  .rb-item.no .rb-val { color: var(--text2); }
+
+  /* ── Lista de beneficiarios ── */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+  .panel-head {
+    padding: 13px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .panel-head h3 { font-family: var(--display); font-size: 14px; }
+  .panel-head .ph-sub { font-size: 11px; color: var(--text2); }
+
+  .search-box { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .search-box input {
+    width: 100%; padding: 11px 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; font-size: 14px; font-family: var(--sans); outline: none; color: var(--text);
+  }
+  .search-box input:focus { border-color: var(--accent); }
+
+  .ben-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  .ben-row:last-child { border-bottom: none; }
+  .ben-row .b-info { flex: 1; min-width: 0; }
+  .ben-row .b-name { font-size: 14px; font-weight: 500; }
+  .ben-row .b-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+  .asist-toggle { display: flex; gap: 4px; }
+  .asist-btn {
+    padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border);
+    background: transparent; color: var(--text2); font-family: var(--sans);
+  }
+  .asist-btn.si { background: #dcfce7; border-color: #166534; color: #166534; }
+  .asist-btn.no { background: #fee2e2; border-color: #991b1b; color: #991b1b; }
+
+  /* ── Envío ── */
+  .btn-primary {
+    width: 100%; padding: 16px;
+    background: var(--accent); border: none; border-radius: 14px;
+    color: white; font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: var(--display);
+  }
+  .btn-primary:active { background: var(--accent-light); }
+  .envio-ok {
+    display: none; margin-top: 12px;
+    background: #dcfce7; border: 1px solid #86efac; border-radius: 12px;
+    padding: 14px 16px; font-size: 13px; color: var(--ok); line-height: 1.5;
+  }
+
+  /* Modal import simulada */
+  .modal-bg {
+    display: none; position: fixed; inset: 0; background: rgba(26,26,24,.5);
+    z-index: 100; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 18px; max-width: 420px; width: 100%;
+    padding: 24px; text-align: center;
+  }
+  .modal .m-icon { font-size: 40px; margin-bottom: 12px; }
+  .modal h3 { font-family: var(--display); font-size: 17px; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 16px; }
+  .file-fake {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; font-size: 13px; display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    text-align: left;
+  }
+  .file-fake .ff-icon { font-size: 22px; }
+  .file-fake .ff-name { font-weight: 600; }
+  .file-fake .ff-sub { font-size: 11px; color: var(--text2); }
+  .progress { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-bottom: 16px; display: none; }
+  .progress .bar { height: 100%; width: 0%; background: var(--accent); transition: width 1.2s ease; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: white; padding: 12px 22px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; z-index: 500;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">📋</span>
+  <h1>BAC · Trabajo social</h1>
+  <span class="user">T.S. Gabriela Ramos</span>
+</div>
+
+<div class="container">
+  <div class="demo-note">🧪 Prototipo — funciona igual en computadora o celular</div>
+
+  <!-- Comunidades -->
+  <div class="com-select" id="com-select"></div>
+
+  <!-- Importar padrón -->
+  <div class="import-card">
+    <div class="ic-icon">📄</div>
+    <div class="ic-txt">
+      <div class="ic-title">Padrón de beneficiarios</div>
+      <div class="ic-sub" id="import-sub">Importa la lista desde tu Excel o Word — no vuelvas a capturarla</div>
+    </div>
+    <button class="btn-import" onclick="abrirImport()">⬆ Importar Excel</button>
+  </div>
+
+  <!-- Resumen -->
+  <div class="resumen-bar">
+    <div class="rb-item">
+      <div class="rb-val" id="r-total">0</div>
+      <div class="rb-lbl">Familias en padrón</div>
+    </div>
+    <div class="rb-item si">
+      <div class="rb-val" id="r-si">0</div>
+      <div class="rb-lbl">Confirman asistir</div>
+    </div>
+    <div class="rb-item">
+      <div class="rb-val" id="r-paq" style="color:var(--accent)">0</div>
+      <div class="rb-lbl">Paquetes necesarios</div>
+    </div>
+  </div>
+
+  <!-- Pase de lista -->
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Pase de lista · hoy mar 22</h3>
+      <span class="ph-sub">marca quién sí va al reparto</span>
+    </div>
+    <div class="search-box">
+      <input type="search" id="buscar" placeholder="🔍 Buscar beneficiario…" oninput="renderLista()">
+    </div>
+    <div id="lista-ben"></div>
+  </div>
+
+  <button class="btn-primary" onclick="enviarPlaneacion()">📤 Enviar demanda al nutriólogo</button>
+  <div class="envio-ok" id="envio-ok"></div>
+</div>
+
+<!-- Modal de importación simulada -->
+<div class="modal-bg" id="modal-import">
+  <div class="modal">
+    <div class="m-icon">📥</div>
+    <h3>Importar padrón</h3>
+    <p>En el sistema real podrás arrastrar aquí tu archivo de Excel o Word. El sistema detecta las columnas (nombre, integrantes, teléfono) y crea el padrón automáticamente.</p>
+    <div class="file-fake">
+      <div class="ff-icon">📊</div>
+      <div>
+        <div class="ff-name">Padron_LaEsperanza_2026.xlsx</div>
+        <div class="ff-sub">Hoja 1 · 12 filas detectadas</div>
+      </div>
+    </div>
+    <div class="progress" id="imp-progress"><div class="bar" id="imp-bar"></div></div>
+    <button class="btn-primary" id="btn-imp" onclick="simularImport()">Importar 12 beneficiarios</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COMUNIDADES = {
+  'Col. Fomerrey 45': [
+    { nom:'Familia García Torres',   int:5, tel:'81-1234-0001', asiste:true },
+    { nom:'Familia Hernández Ruiz',  int:3, tel:'81-1234-0002', asiste:true },
+    { nom:'Familia Morales Peña',    int:6, tel:'81-1234-0003', asiste:true },
+    { nom:'Familia Castillo Vega',   int:4, tel:'81-1234-0004', asiste:false },
+    { nom:'Familia Domínguez Lara',  int:2, tel:'81-1234-0005', asiste:true },
+    { nom:'Familia Salinas Ortiz',   int:7, tel:'81-1234-0006', asiste:true },
+    { nom:'Familia Reyes Campos',    int:4, tel:'81-1234-0007', asiste:true },
+    { nom:'Familia Aguilar Núñez',   int:3, tel:'81-1234-0008', asiste:false },
+    { nom:'Familia Torres Ibarra',   int:5, tel:'81-1234-0009', asiste:true },
+    { nom:'Familia Mendoza Cruz',    int:4, tel:'81-1234-0010', asiste:true },
+  ],
+  'Ejido La Esperanza': [
+    { nom:'Familia Cantú Ramírez',   int:4, tel:'81-5678-0001', asiste:true },
+    { nom:'Familia Villarreal Soto', int:6, tel:'81-5678-0002', asiste:true },
+    { nom:'Familia Guerra Luna',     int:3, tel:'81-5678-0003', asiste:true },
+    { nom:'Familia Treviño Mata',    int:5, tel:'81-5678-0004', asiste:false },
+    { nom:'Familia Zapata Ríos',     int:2, tel:'81-5678-0005', asiste:true },
+    { nom:'Familia Elizondo Páez',   int:4, tel:'81-5678-0006', asiste:true },
+  ],
+  'Col. Independencia': [
+    { nom:'Familia Flores Ochoa',    int:5, tel:'81-9012-0001', asiste:true },
+    { nom:'Familia Rocha Medina',    int:3, tel:'81-9012-0002', asiste:true },
+    { nom:'Familia Cavazos Gil',     int:4, tel:'81-9012-0003', asiste:true },
+    { nom:'Familia Leal Bustos',     int:6, tel:'81-9012-0004', asiste:false },
+    { nom:'Familia Montes Serna',    int:2, tel:'81-9012-0005', asiste:true },
+    { nom:'Familia Padilla Vela',    int:5, tel:'81-9012-0006', asiste:true },
+    { nom:'Familia Quiroga Sada',    int:3, tel:'81-9012-0007', asiste:true },
+  ],
+};
+
+let comActiva = Object.keys(COMUNIDADES)[0];
+
+function renderComs() {
+  document.getElementById('com-select').innerHTML = Object.keys(COMUNIDADES).map(c => `
+    <div class="com-chip ${c === comActiva ? 'on' : ''}" onclick="setCom('${c.replace(/'/g, "\\'")}')">🤝 ${c}</div>
+  `).join('');
+}
+
+function setCom(c) {
+  comActiva = c;
+  document.getElementById('buscar').value = '';
+  document.getElementById('envio-ok').style.display = 'none';
+  renderComs();
+  renderLista();
+}
+
+function renderLista() {
+  const q = (document.getElementById('buscar').value || '').toLowerCase();
+  const lista = COMUNIDADES[comActiva];
+
+  document.getElementById('lista-ben').innerHTML = lista
+    .map((b, i) => ({ b, i }))
+    .filter(({ b }) => b.nom.toLowerCase().includes(q))
+    .map(({ b, i }) => `
+      <div class="ben-row">
+        <div class="b-info">
+          <div class="b-name">${b.nom}</div>
+          <div class="b-sub">${b.int} integrantes · ${b.tel}</div>
+        </div>
+        <div class="asist-toggle">
+          <button class="asist-btn ${b.asiste ? 'si' : ''}" onclick="setAsiste(${i}, true)">Sí va</button>
+          <button class="asist-btn ${!b.asiste ? 'no' : ''}" onclick="setAsiste(${i}, false)">No</button>
+        </div>
+      </div>
+    `).join('') || '<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px">Sin resultados</div>';
+
+  const total = lista.length;
+  const si = lista.filter(b => b.asiste).length;
+  document.getElementById('r-total').textContent = total;
+  document.getElementById('r-si').textContent = si;
+  document.getElementById('r-paq').textContent = si;
+}
+
+function setAsiste(i, val) {
+  COMUNIDADES[comActiva][i].asiste = val;
+  renderLista();
+}
+
+function enviarPlaneacion() {
+  const lista = COMUNIDADES[comActiva];
+  const si = lista.filter(b => b.asiste).length;
+  const ok = document.getElementById('envio-ok');
+  ok.innerHTML = `✅ <strong>Demanda enviada al nutriólogo:</strong> ${comActiva} necesita <strong>${si} paquetes</strong> para el reparto de hoy. La verá al instante en su módulo de planeación.`;
+  ok.style.display = 'block';
+  showToast(`${comActiva}: ${si} paquetes solicitados ✓`);
+}
+
+// ── Import simulada ──
+function abrirImport() { document.getElementById('modal-import').classList.add('show'); }
+
+function simularImport() {
+  const btn = document.getElementById('btn-imp');
+  btn.disabled = true;
+  btn.textContent = 'Importando…';
+  document.getElementById('imp-progress').style.display = 'block';
+  setTimeout(() => document.getElementById('imp-bar').style.width = '100%', 50);
+
+  setTimeout(() => {
+    const nuevos = [
+      { nom:'Familia Bravo Estrada',  int:4, tel:'81-5678-0007', asiste:true },
+      { nom:'Familia Nava Cordero',   int:3, tel:'81-5678-0008', asiste:true },
+      { nom:'Familia Osuna Palacios', int:5, tel:'81-5678-0009', asiste:true },
+      { nom:'Familia Ponce Duarte',   int:2, tel:'81-5678-0010', asiste:true },
+      { nom:'Familia Ríos Balderas',  int:6, tel:'81-5678-0011', asiste:true },
+      { nom:'Familia Soto Carrillo',  int:4, tel:'81-5678-0012', asiste:true },
+    ];
+    COMUNIDADES['Ejido La Esperanza'].push(...nuevos);
+    comActiva = 'Ejido La Esperanza';
+    document.getElementById('modal-import').classList.remove('show');
+    btn.disabled = false;
+    btn.textContent = 'Importar 12 beneficiarios';
+    document.getElementById('imp-progress').style.display = 'none';
+    document.getElementById('imp-bar').style.width = '0%';
+    renderComs();
+    renderLista();
+    showToast('Padrón importado: +6 familias en Ejido La Esperanza ✓');
+  }, 1400);
+}
+
+document.getElementById('modal-import').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+});
+
+renderComs();
+renderLista();
+</script>
+</body>
+</html>

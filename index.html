@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAC · Banco de Alimentos Cáritas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e0dbd2;
+    --accent: #1a3a2a;
+    --accent-light: #2d6248;
+    --accent-bg: #e8f0ec;
+    --text: #1a1a18;
+    --text2: #6b6760;
+    --warn: #b45309;
+    --danger: #991b1b;
+    --ok: #166534;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .hero {
+    background: var(--accent);
+    color: white;
+    padding: 48px 24px 56px;
+    text-align: center;
+  }
+  .hero .logo { font-size: 44px; margin-bottom: 12px; }
+  .hero .tag {
+    display: inline-block; font-family: var(--display); font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    background: rgba(255,255,255,.14); padding: 5px 14px; border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .hero h1 { font-family: var(--display); font-size: clamp(26px, 5vw, 40px); font-weight: 800; margin-bottom: 10px; }
+  .hero p  { font-size: 15px; opacity: .8; max-width: 560px; margin: 0 auto; line-height: 1.6; }
+
+  .demo-banner {
+    background: #fef9c3; border-bottom: 1px solid #fde68a;
+    padding: 10px 16px; text-align: center;
+    font-size: 13px; color: #78350f;
+  }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }
+
+  /* ── Flujo ── */
+  .flow-title { font-family: var(--display); font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .flow {
+    display: flex; align-items: stretch; gap: 0;
+    overflow-x: auto; padding-bottom: 8px; margin-bottom: 40px;
+  }
+  .flow-step {
+    flex: 1; min-width: 130px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 12px; text-align: center;
+    position: relative;
+  }
+  .flow-step + .flow-step { margin-left: 28px; }
+  .flow-step + .flow-step::before {
+    content: '→'; position: absolute; left: -22px; top: 50%;
+    transform: translateY(-50%); color: var(--text2); font-size: 16px;
+  }
+  .flow-step .fs-icon { font-size: 26px; margin-bottom: 6px; }
+  .flow-step .fs-name { font-family: var(--display); font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+  .flow-step .fs-desc { font-size: 11px; color: var(--text2); line-height: 1.4; }
+
+  /* ── Módulos ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 22px;
+    text-decoration: none; color: var(--text);
+    display: flex; flex-direction: column; gap: 10px;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,58,42,.12); }
+  .card-top { display: flex; align-items: center; justify-content: space-between; }
+  .card .icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--accent-bg); display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .rol-badge {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px;
+    padding: 4px 10px; border-radius: 20px;
+    background: var(--surface2); color: var(--text2); border: 1px solid var(--border);
+  }
+  .rol-badge.movil { background: #e8f0ec; color: var(--accent-light); border-color: #c4dcce; }
+  .card h3 { font-family: var(--display); font-size: 17px; font-weight: 700; }
+  .card p  { font-size: 13px; color: var(--text2); line-height: 1.55; flex: 1; }
+  .card .go {
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .footer {
+    text-align: center; padding: 24px; color: var(--text2); font-size: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding: 36px 20px 40px; }
+    .flow { flex-direction: column; gap: 10px; }
+    .flow-step + .flow-step { margin-left: 0; }
+    .flow-step + .flow-step::before { content: '↓'; left: 50%; top: -20px; transform: translateX(-50%); }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  🧪 <strong>Prototipo demostrativo</strong> — todos los datos son de ejemplo. Sin conexión a base de datos.
+  &nbsp;·&nbsp; <a href="revision.html" style="color:#78350f; font-weight:700">¿Vienes a revisar? Empieza aquí →</a>
+</div>
+
+<div class="hero">
+  <div class="logo">🥕</div>
+  <div class="tag">Sistema de Control de Operaciones</div>
+  <h1>Banco de Alimentos Cáritas</h1>
+  <p>Del rescate en supermercados aliados hasta la entrega en comunidad: registro de entradas, clasificación con semáforo, inventario, planeación de paquetes, trabajo social y panel de impacto.</p>
+</div>
+
+<div class="container">
+
+  <div class="flow-title">El flujo de la operación</div>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="fs-icon">🚚</div>
+      <div class="fs-name">Rescate</div>
+      <div class="fs-desc">El chofer recoge donaciones en supermercados aliados</div>
+    </div>
+    <div class="flow-step">
+      <div class="fs-icon">📦</div>
+      <div class="fs-name">Recepción</div>
+      <div class="fs-desc">Almacén clasifica con semáforo 🟢🟡🔴 y asigna ubicación</div>
+    </div>
+    <div class="flow-step">
+      <div class="fs-icon">🧮</div>
+      <div class="fs-name">Inventario</div>
+      <div class="fs-desc">Existencias por producto en seco, refrigerador y congelador</div>
+    </div>
+    <div class="flow-step">
+      <div class="fs-icon">🥗</div>
+      <div class="fs-name">Planeación</div>
+      <div class="fs-desc">Nutriólogo arma paquetes según disponibilidad y demanda</div>
+    </div>
+    <div class="flow-step">
+      <div class="fs-icon">🤝</div>
+      <div class="fs-name">Entrega</div>
+      <div class="fs-desc">Distribución en comunidad, cuotas de recuperación e impacto</div>
+    </div>
+  </div>
+
+  <div class="flow-title">Módulos del sistema</div>
+  <div class="grid">
+
+    <a class="card" href="bac-rescate.html">
+      <div class="card-top">
+        <div class="icon">🚚</div>
+        <span class="rol-badge movil">📱 Chofer</span>
+      </div>
+      <h3>Rescate de alimentos</h3>
+      <p>Ruta del día por supermercados aliados. Registro de hora de llegada y salida, y captura rápida de kilogramos por grupo de alimento — sin listas exhaustivas, pensado para usarse en la calle.</p>
+      <div class="go">Abrir módulo →</div>
+    </a>
+
+    <a class="card" href="bac-almacen.html">
+      <div class="card-top">
+        <div class="icon">📦</div>
+        <span class="rol-badge">💻 Almacenista</span>
+      </div>
+      <h3>Almacén · Recepción e inventario</h3>
+      <p>Recepción de cada rescate con clasificación por artículo y semáforo de frescura (🟢 conservable, 🟡 poca vida, 🔴 desechar), destino a seco / refrigerador / congelador, y control de existencias.</p>
+      <div class="go">Abrir módulo →</div>
+    </a>
+
+    <a class="card" href="bac-planeacion.html">
+      <div class="card-top">
+        <div class="icon">🥗</div>
+        <span class="rol-badge">💻 Nutriólogo / Jefe</span>
+      </div>
+      <h3>Planeación de paquetes</h3>
+      <p>Cruza la demanda que reporta trabajo social con la disponibilidad real del inventario (hoy y mañana). Arma la composición del paquete, calcula cuántos alcanzan y genera la orden de salida.</p>
+      <div class="go">Abrir módulo →</div>
+    </a>
+
+    <a class="card" href="bac-social.html">
+      <div class="card-top">
+        <div class="icon">📋</div>
+        <span class="rol-badge movil">📱💻 Trabajo social</span>
+      </div>
+      <h3>Trabajo social</h3>
+      <p>Padrón de beneficiarios importado desde Excel o Word. Pase de lista diario desde computadora o celular para confirmar quién sí asiste — esa cifra alimenta la planeación del nutriólogo.</p>
+      <div class="go">Abrir módulo →</div>
+    </a>
+
+    <a class="card" href="bac-entregas.html">
+      <div class="card-top">
+        <div class="icon">🤝</div>
+        <span class="rol-badge movil">📱 Chofer / Promotor</span>
+      </div>
+      <h3>Entregas en comunidad</h3>
+      <p>Hora de salida del banco y llegada a la comunidad, responsable que recibe, paquetes distribuidos contra lo planeado y cuota de recuperación cobrada. Funciona sin señal y sincroniza después.</p>
+      <div class="go">Abrir módulo →</div>
+    </a>
+
+    <a class="card" href="bac-panel.html">
+      <div class="card-top">
+        <div class="icon">📊</div>
+        <span class="rol-badge">💻 Dirección</span>
+      </div>
+      <h3>Panel de control e impacto</h3>
+      <p>Cuánto se recibió y de qué fuente (rescate, acopio, compra, gestiones en red), cuánto se distribuyó, qué hay en inventario, comunidades atendidas y el impacto logrado.</p>
+      <div class="go">Abrir módulo →</div>
+    </a>
+
+  </div>
+</div>
+
+<div class="footer">
+  BAC · Banco de Alimentos Cáritas — Prototipo v1 · Datos ficticios para demostración
+</div>
+
+</body>
+</html>

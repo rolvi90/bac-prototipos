@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAC · Panel de dirección</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e0dbd2;
+    --accent: #1a3a2a;
+    --accent-light: #2d6248;
+    --accent-bg: #e8f0ec;
+    --text: #1a1a18;
+    --text2: #6b6760;
+    --warn: #b45309;
+    --danger: #991b1b;
+    --ok: #166534;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .topbar {
+    background: var(--accent); color: white;
+    padding: 14px 24px; display: flex; align-items: center; gap: 14px;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar .logo { font-size: 22px; }
+  .topbar h1 { font-family: var(--display); font-size: 17px; font-weight: 700; flex: 1; }
+  .periodo-toggle { display: flex; background: rgba(255,255,255,.12); border-radius: 10px; padding: 3px; }
+  .periodo-btn {
+    padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    border: none; background: transparent; color: rgba(255,255,255,.75);
+    cursor: pointer; font-family: var(--sans);
+  }
+  .periodo-btn.on { background: white; color: var(--accent); }
+
+  .container { max-width: 1150px; margin: 0 auto; padding: 24px 20px 64px; }
+
+  .demo-note {
+    background: #fef9c3; border: 1px solid #fde68a;
+    border-radius: 10px; padding: 8px 14px; font-size: 12px; color: #78350f;
+    margin-bottom: 18px; text-align: center;
+  }
+
+  h2.sec-title { font-family: var(--display); font-size: 16px; font-weight: 700; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; }
+  h2.sec-title:first-of-type { margin-top: 0; }
+
+  /* KPIs impacto */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 16px 18px;
+  }
+  .kpi.destacado { background: var(--accent); border-color: var(--accent); color: white; }
+  .kpi .kpi-icon { font-size: 20px; margin-bottom: 8px; }
+  .kpi .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--text2); }
+  .kpi.destacado .kpi-label { color: rgba(255,255,255,.7); }
+  .kpi .kpi-val { font-family: var(--display); font-size: 30px; font-weight: 700; color: var(--accent); margin-top: 4px; }
+  .kpi.destacado .kpi-val { color: white; }
+  .kpi .kpi-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .kpi.destacado .kpi-sub { color: rgba(255,255,255,.7); }
+
+  .layout-2 { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .layout-2 { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+  .panel h3 { font-family: var(--display); font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+
+  /* Barras de fuentes */
+  .barra-row { margin-bottom: 14px; }
+  .barra-row:last-child { margin-bottom: 0; }
+  .barra-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .barra-top .b-name { font-weight: 600; }
+  .barra-top .b-val { color: var(--text2); }
+  .barra-track { height: 12px; background: var(--surface2); border-radius: 6px; overflow: hidden; }
+  .barra-fill { height: 100%; border-radius: 6px; }
+
+  /* Balance */
+  .balance { display: flex; flex-direction: column; gap: 0; }
+  .bal-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 0; border-bottom: 1px dashed var(--border); font-size: 14px;
+  }
+  .bal-row:last-child { border-bottom: none; }
+  .bal-row .bl { display: flex; align-items: center; gap: 8px; }
+  .bal-row .bv { font-family: var(--display); font-weight: 700; font-size: 16px; }
+  .bal-row.total { border-top: 2px solid var(--accent); margin-top: 4px; }
+  .bal-row.total .bv { color: var(--accent); font-size: 20px; }
+
+  /* Tabla comunidades */
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+  th {
+    text-align: left; padding: 10px 14px; font-size: 10px; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--text2); background: var(--surface2);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-weight: 600; font-family: var(--display); }
+  .estado-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .e-ok { background: #dcfce7; color: var(--ok); }
+  .e-prog { background: #fef9c3; color: #78350f; }
+
+  .nota-impacto {
+    margin-top: 18px; background: var(--accent-bg); border-radius: 14px; padding: 16px 18px;
+    font-size: 13px; color: var(--accent-light); line-height: 1.6;
+  }
+  .nota-impacto strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">📊</span>
+  <h1>BAC · Panel de dirección</h1>
+  <div class="periodo-toggle">
+    <button class="periodo-btn" onclick="setPeriodo('hoy', this)">Hoy</button>
+    <button class="periodo-btn on" onclick="setPeriodo('sem', this)">Semana</button>
+    <button class="periodo-btn" onclick="setPeriodo('mes', this)">Mes</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="demo-note">🧪 Prototipo demostrativo — cifras de ejemplo · <span id="periodo-lbl">Semana del 16 al 22 de julio</span></div>
+
+  <h2 class="sec-title">🌱 Impacto</h2>
+  <div class="kpi-grid" id="kpi-impacto"></div>
+
+  <h2 class="sec-title">⚖️ Balance de alimentos</h2>
+  <div class="layout-2">
+    <div class="panel">
+      <h3>📥 Entradas por fuente</h3>
+      <div id="fuentes"></div>
+    </div>
+    <div class="panel">
+      <h3>Balance del periodo (kg)</h3>
+      <div class="balance" id="balance"></div>
+    </div>
+  </div>
+
+  <h2 class="sec-title">🤝 Comunidades atendidas</h2>
+  <div class="panel" style="padding:0">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Comunidad</th>
+            <th>Responsable</th>
+            <th style="text-align:right">Familias</th>
+            <th style="text-align:right">Paquetes</th>
+            <th style="text-align:right">Kg</th>
+            <th style="text-align:right">Cuotas ($)</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="com-rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="nota-impacto" id="nota"></div>
+</div>
+
+<script>
+const DATA = {
+  hoy: {
+    lbl: 'Martes 22 de julio',
+    kpis: { kg_dist: 830, familias: 83, personas: 356, raciones: 1068, comunidades: 2, valor: 29050 },
+    fuentes: [
+      { n:'🚚 Rescate en supermercados', kg: 675,  color:'#2d6248' },
+      { n:'🎁 Gestiones / Red BAMX',     kg: 420,  color:'#1d4ed8' },
+      { n:'🛒 Compra en mercado',        kg: 0,    color:'#b45309' },
+      { n:'📦 Acopio / donativos',       kg: 35,   color:'#7c3aed' },
+    ],
+    balance: { entradas: 1130, salidas: 830, merma: 45, inventario: 1518 },
+    comunidades: [
+      { c:'Col. Fomerrey 45',   r:'Sra. Carmen Ruiz',  fam:48, paq:48, kg:490, cuota:960,  ok:true },
+      { c:'Ejido La Esperanza', r:'Sr. José Martínez', fam:35, paq:33, kg:340, cuota:660,  ok:false },
+    ],
+  },
+  sem: {
+    lbl: 'Semana del 16 al 22 de julio',
+    kpis: { kg_dist: 5240, familias: 412, personas: 1770, raciones: 5310, comunidades: 5, valor: 183400 },
+    fuentes: [
+      { n:'🚚 Rescate en supermercados', kg: 3890, color:'#2d6248' },
+      { n:'🎁 Gestiones / Red BAMX',     kg: 1240, color:'#1d4ed8' },
+      { n:'🛒 Compra en mercado',        kg: 560,  color:'#b45309' },
+      { n:'📦 Acopio / donativos',       kg: 480,  color:'#7c3aed' },
+    ],
+    balance: { entradas: 6170, salidas: 5240, merma: 310, inventario: 1518 },
+    comunidades: [
+      { c:'Col. Fomerrey 45',    r:'Sra. Carmen Ruiz',  fam:52, paq:144, kg:1470, cuota:2880, ok:true },
+      { c:'Ejido La Esperanza',  r:'Sr. José Martínez', fam:38, paq:101, kg:1030, cuota:2020, ok:true },
+      { c:'Col. Independencia',  r:'Sra. Luz Elena G.', fam:45, paq:118, kg:1200, cuota:2360, ok:true },
+      { c:'San Bernabé Sector 3',r:'Sra. Paty Flores',  fam:60, paq:97,  kg:990,  cuota:1940, ok:true },
+      { c:'Ciénega de Flores',   r:'Sr. Raúl Cantú',    fam:33, paq:54,  kg:550,  cuota:1080, ok:false },
+    ],
+  },
+  mes: {
+    lbl: 'Julio 2026 (al día 22)',
+    kpis: { kg_dist: 18650, familias: 486, personas: 2090, raciones: 18900, comunidades: 8, valor: 652750 },
+    fuentes: [
+      { n:'🚚 Rescate en supermercados', kg: 13200, color:'#2d6248' },
+      { n:'🎁 Gestiones / Red BAMX',     kg: 4800,  color:'#1d4ed8' },
+      { n:'🛒 Compra en mercado',        kg: 2100,  color:'#b45309' },
+      { n:'📦 Acopio / donativos',       kg: 1650,  color:'#7c3aed' },
+    ],
+    balance: { entradas: 21750, salidas: 18650, merma: 1580, inventario: 1518 },
+    comunidades: [
+      { c:'Col. Fomerrey 45',    r:'Sra. Carmen Ruiz',  fam:52, paq:490, kg:5000, cuota:9800, ok:true },
+      { c:'Ejido La Esperanza',  r:'Sr. José Martínez', fam:38, paq:350, kg:3570, cuota:7000, ok:true },
+      { c:'Col. Independencia',  r:'Sra. Luz Elena G.', fam:45, paq:420, kg:4280, cuota:8400, ok:true },
+      { c:'San Bernabé Sector 3',r:'Sra. Paty Flores',  fam:60, paq:380, kg:3880, cuota:7600, ok:true },
+      { c:'Ciénega de Flores',   r:'Sr. Raúl Cantú',    fam:33, paq:190, kg:1940, cuota:3800, ok:true },
+      { c:'Col. Valle Verde',    r:'Sra. Nora Sáenz',   fam:41, paq:120, kg:1220, cuota:2400, ok:true },
+      { c:'El Carmen Norte',     r:'Sr. Hugo Leal',     fam:29, paq:80,  kg:820,  cuota:1600, ok:true },
+      { c:'Villa Juárez',        r:'Sra. Delia Mora',   fam:35, paq:0,   kg:0,    cuota:0,    ok:false },
+    ],
+  },
+};
+
+let periodo = 'sem';
+
+function setPeriodo(p, btn) {
+  periodo = p;
+  document.querySelectorAll('.periodo-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+function render() {
+  const d = DATA[periodo];
+  document.getElementById('periodo-lbl').textContent = d.lbl;
+
+  // KPIs
+  document.getElementById('kpi-impacto').innerHTML = `
+    <div class="kpi destacado">
+      <div class="kpi-icon">⚖️</div>
+      <div class="kpi-label">Kg distribuidos</div>
+      <div class="kpi-val">${d.kpis.kg_dist.toLocaleString()}</div>
+      <div class="kpi-sub">≈ ${d.kpis.raciones.toLocaleString()} raciones</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">👨‍👩‍👧‍👦</div>
+      <div class="kpi-label">Familias beneficiadas</div>
+      <div class="kpi-val">${d.kpis.familias.toLocaleString()}</div>
+      <div class="kpi-sub">≈ ${d.kpis.personas.toLocaleString()} personas</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">🤝</div>
+      <div class="kpi-label">Comunidades atendidas</div>
+      <div class="kpi-val">${d.kpis.comunidades}</div>
+      <div class="kpi-sub">en el periodo</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">Valor del alimento</div>
+      <div class="kpi-val">$${(d.kpis.valor/1000).toFixed(0)}k</div>
+      <div class="kpi-sub">estimado a precio de mercado</div>
+    </div>
+  `;
+
+  // Fuentes
+  const totF = d.fuentes.reduce((s,f) => s + f.kg, 0);
+  document.getElementById('fuentes').innerHTML = d.fuentes.map(f => `
+    <div class="barra-row">
+      <div class="barra-top">
+        <span class="b-name">${f.n}</span>
+        <span class="b-val">${f.kg.toLocaleString()} kg · ${totF ? Math.round(f.kg/totF*100) : 0}%</span>
+      </div>
+      <div class="barra-track"><div class="barra-fill" style="width:${totF ? f.kg/totF*100 : 0}%; background:${f.color}"></div></div>
+    </div>
+  `).join('');
+
+  // Balance
+  const b = d.balance;
+  document.getElementById('balance').innerHTML = `
+    <div class="bal-row"><span class="bl">📥 Entradas totales</span><span class="bv">${b.entradas.toLocaleString()}</span></div>
+    <div class="bal-row"><span class="bl">📤 Distribuido</span><span class="bv">−${b.salidas.toLocaleString()}</span></div>
+    <div class="bal-row"><span class="bl">🗑️ Merma (semáforo rojo)</span><span class="bv" style="color:var(--danger)">−${b.merma.toLocaleString()}</span></div>
+    <div class="bal-row total"><span class="bl"><strong>🧮 Inventario actual</strong></span><span class="bv">${b.inventario.toLocaleString()}</span></div>
+    <div style="font-size:11px;color:var(--text2);margin-top:8px">Merma = ${(b.merma/(b.entradas||1)*100).toFixed(1)}% de las entradas · el semáforo ayuda a bajarla priorizando 🟡 en los repartos</div>
+  `;
+
+  // Comunidades
+  document.getElementById('com-rows').innerHTML = d.comunidades.map(c => `
+    <tr>
+      <td style="font-weight:600">${c.c}</td>
+      <td style="color:var(--text2)">${c.r}</td>
+      <td class="num">${c.fam}</td>
+      <td class="num">${c.paq.toLocaleString()}</td>
+      <td class="num">${c.kg.toLocaleString()}</td>
+      <td class="num">$${c.cuota.toLocaleString()}</td>
+      <td><span class="estado-badge ${c.ok ? 'e-ok' : 'e-prog'}">${c.ok ? '✓ Atendida' : 'Programada'}</span></td>
+    </tr>
+  `).join('');
+
+  const cuotasTot = d.comunidades.reduce((s,c) => s + c.cuota, 0);
+  document.getElementById('nota').innerHTML =
+    `💡 <strong>Lectura rápida del periodo:</strong> se recuperaron <strong>$${cuotasTot.toLocaleString()}</strong> en cuotas de recuperación. ` +
+    `El rescate en supermercados aporta el <strong>${Math.round(d.fuentes[0].kg/totF*100)}%</strong> de las entradas — ` +
+    `cada kg rescatado es alimento que no se desperdicia y llega a una familia.`;
+}
+
+render();
+</script>
+</body>
+</html>

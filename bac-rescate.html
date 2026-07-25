@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>BAC · Rescate de alimentos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e0dbd2;
+    --accent: #1a3a2a;
+    --accent-light: #2d6248;
+    --accent-bg: #e8f0ec;
+    --text: #1a1a18;
+    --text2: #6b6760;
+    --warn: #b45309;
+    --danger: #991b1b;
+    --ok: #166534;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--accent); color: white;
+    padding: 18px 20px 22px;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .header-top .logo { font-size: 20px; }
+  .folio-badge {
+    font-family: var(--display); font-size: 11px; font-weight: 600;
+    background: rgba(255,255,255,.15); padding: 4px 10px; border-radius: 20px;
+    letter-spacing: .5px;
+  }
+  .header h1 { font-family: var(--display); font-size: 21px; font-weight: 700; margin-bottom: 4px; }
+  .header .sub { font-size: 13px; opacity: .75; }
+
+  /* ── Progreso de ruta ── */
+  .ruta-progress {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; margin: -10px 16px 0; padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ruta-progress .rp-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+  .ruta-progress .rp-val { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--accent); }
+  .rp-kg { text-align: right; }
+
+  /* ── Lista de paradas ── */
+  .paradas { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .parada {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+  }
+  .parada .p-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    background: var(--surface2); display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .parada.done .p-icon { background: #dcfce7; }
+  .parada.active { border-color: var(--accent); border-width: 2px; }
+  .parada .p-info { flex: 1; min-width: 0; }
+  .parada .p-name { font-size: 14px; font-weight: 600; }
+  .parada .p-sub  { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  .parada .p-status { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .st-pend   { background: var(--surface2); color: var(--text2); }
+  .st-activo { background: #fef9c3; color: #78350f; }
+  .st-done   { background: #dcfce7; color: var(--ok); }
+
+  /* ── Detalle de parada ── */
+  .detalle { display: none; padding: 0 16px 16px; }
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; margin-bottom: 12px;
+  }
+  .section-header {
+    padding: 13px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-header .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent); color: white;
+    font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-header h3 { font-family: var(--display); font-size: 14px; font-weight: 600; }
+  .section-body { padding: 14px 16px; }
+
+  .field label { font-size: 11px; color: var(--text2); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 12px 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: 15px;
+    font-family: var(--sans); outline: none; appearance: none;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .field textarea { resize: none; height: 70px; font-size: 13px; }
+
+  .hora-group { display: flex; gap: 8px; align-items: flex-end; }
+  .hora-group .field { flex: 1; }
+  .btn-ahora {
+    height: 48px; padding: 0 14px;
+    background: var(--accent-bg); border: 1px solid var(--accent-light);
+    border-radius: 10px; color: var(--accent); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans); white-space: nowrap;
+  }
+  .btn-ahora:active { background: #d1e5da; }
+
+  /* ── Grupos de alimentos ── */
+  .grupo-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .grupo-row:last-child { border-bottom: none; }
+  .grupo-row .g-icon { font-size: 22px; width: 32px; text-align: center; flex-shrink: 0; }
+  .grupo-row .g-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .stepper { display: flex; align-items: center; gap: 6px; }
+  .stepper button {
+    width: 36px; height: 36px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface2);
+    font-size: 18px; font-weight: 600; color: var(--accent);
+    cursor: pointer; font-family: var(--sans);
+  }
+  .stepper button:active { background: var(--accent-bg); }
+  .stepper input {
+    width: 62px; text-align: center; padding: 8px 4px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; font-size: 15px; font-weight: 600;
+    font-family: var(--sans); outline: none; color: var(--text);
+    appearance: none; -moz-appearance: textfield;
+  }
+  .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .kg-lbl { font-size: 11px; color: var(--text2); width: 18px; }
+
+  .total-bar {
+    background: var(--accent-bg); border-radius: 10px;
+    padding: 12px 14px; margin-top: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .total-bar span { font-size: 13px; color: var(--accent-light); font-weight: 500; }
+  .total-bar strong { font-family: var(--display); font-size: 20px; color: var(--accent); }
+
+  /* ── Botones ── */
+  .btn-primary {
+    width: 100%; padding: 16px;
+    background: var(--accent); border: none; border-radius: 14px;
+    color: white; font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: var(--display);
+  }
+  .btn-primary:active { background: var(--accent-light); }
+  .btn-primary:disabled { background: var(--border); color: var(--text2); cursor: not-allowed; }
+  .btn-ghost {
+    width: 100%; padding: 13px; margin-top: 8px;
+    background: transparent; border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text2); font-size: 14px;
+    cursor: pointer; font-family: var(--sans);
+  }
+
+  /* ── Resumen final ── */
+  #pantalla-fin { display: none; padding: 32px 24px; text-align: center; }
+  .ok-circle {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: #dcfce7; display: flex; align-items: center; justify-content: center;
+    font-size: 36px; margin: 24px auto 20px;
+  }
+  #pantalla-fin h2 { font-family: var(--display); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  #pantalla-fin p  { color: var(--text2); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+  .resumen-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px; text-align: left; margin-bottom: 10px;
+  }
+  .resumen-card .rc-title { font-family: var(--display); font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+  .resumen-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px dashed var(--border); }
+  .resumen-row:last-child { border-bottom: none; }
+  .resumen-row .rr-val { font-weight: 600; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: white;
+    padding: 12px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; z-index: 500;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+    white-space: nowrap; max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #991b1b; }
+
+  .demo-note {
+    margin: 0 16px 12px; background: #fef9c3; border: 1px solid #fde68a;
+    border-radius: 10px; padding: 8px 12px; font-size: 12px; color: #78350f;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <span class="logo">🚚</span>
+    <span class="folio-badge" id="h-folio">RUTA-0522</span>
+  </div>
+  <h1>Rescate de alimentos</h1>
+  <p class="sub">Martes 22 · Chofer: Juan Pérez · Unidad C-03</p>
+</div>
+
+<!-- Progreso -->
+<div class="ruta-progress">
+  <div>
+    <div class="rp-label">Paradas visitadas</div>
+    <div class="rp-val"><span id="rp-done">0</span> / <span id="rp-total">5</span></div>
+  </div>
+  <div class="rp-kg">
+    <div class="rp-label">Kg rescatados hoy</div>
+    <div class="rp-val" id="rp-kg">0</div>
+  </div>
+</div>
+
+<div style="height:12px"></div>
+<div class="demo-note">🧪 Prototipo — datos de ejemplo, nada se envía a ningún servidor</div>
+
+<!-- Lista de paradas -->
+<div class="paradas" id="lista-paradas"></div>
+
+<!-- Detalle de parada activa -->
+<div class="detalle" id="detalle">
+
+  <div class="section">
+    <div class="section-header">
+      <div class="step-num">1</div>
+      <h3 id="d-nombre">Supermercado</h3>
+    </div>
+    <div class="section-body">
+      <div class="hora-group">
+        <div class="field">
+          <label>Hora de llegada</label>
+          <input type="time" id="f-llegada">
+        </div>
+        <button class="btn-ahora" onclick="setHora('f-llegada')">Ahora</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="step-num">2</div>
+      <h3>¿Qué recogiste? (kg por grupo)</h3>
+    </div>
+    <div class="section-body">
+      <div id="grupos"></div>
+      <div class="total-bar">
+        <span>Total de esta parada</span>
+        <strong><span id="d-total">0</span> kg</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="step-num">3</div>
+      <h3>Salida y observaciones</h3>
+    </div>
+    <div class="section-body">
+      <div class="hora-group" style="margin-bottom:12px">
+        <div class="field">
+          <label>Hora de salida</label>
+          <input type="time" id="f-salida">
+        </div>
+        <button class="btn-ahora" onclick="setHora('f-salida')">Ahora</button>
+      </div>
+      <div class="field">
+        <label>Observaciones (opcional)</label>
+        <textarea id="f-obs" placeholder="Ej. Nos dieron tarima extra de pan, el gerente pide recoger más temprano…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="cerrarParada()">✅ Registrar parada</button>
+  <button class="btn-ghost" onclick="volverALista()">← Volver a la ruta</button>
+</div>
+
+<!-- Pantalla final -->
+<div id="pantalla-fin">
+  <div class="ok-circle">🎉</div>
+  <h2>¡Ruta completada!</h2>
+  <p>El rescate quedó registrado. El almacén ya puede ver lo que viene en camino para preparar la recepción.</p>
+  <div class="resumen-card">
+    <div class="rc-title">Resumen del día</div>
+    <div id="resumen-rows"></div>
+  </div>
+  <button class="btn-ghost" onclick="location.reload()">Reiniciar demo</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GRUPOS = [
+  { id:'fv',   icon:'🥕', name:'Frutas y verduras' },
+  { id:'prot', icon:'🍗', name:'Proteína (carnes)' },
+  { id:'lac',  icon:'🥛', name:'Lácteos' },
+  { id:'pan',  icon:'🍞', name:'Panadería y tortilla' },
+  { id:'aba',  icon:'🥫', name:'Abarrotes' },
+  { id:'nc',   icon:'🧴', name:'No comestible (higiene)' },
+];
+
+const PARADAS = [
+  { id:1, icon:'🏪', nombre:'Soriana Centro',       dir:'Av. Juárez 120',        estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
+  { id:2, icon:'🏬', nombre:'HEB Valle',            dir:'Av. Gonzalitos 340',    estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
+  { id:3, icon:'🏪', nombre:'Walmart Universidad',  dir:'Av. Universidad 899',   estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
+  { id:4, icon:'🛒', nombre:'Costco Cumbres',       dir:'Paseo de los Leones',   estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
+  { id:5, icon:'🍎', nombre:'Mercado de Abastos',   dir:'Bodega 24, Estrella',   estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
+];
+
+let paradaActiva = null;
+
+function renderLista() {
+  const el = document.getElementById('lista-paradas');
+  el.innerHTML = PARADAS.map(p => {
+    const kg = totalKg(p.kg);
+    const stClass = p.estado === 'done' ? 'st-done' : (p.estado === 'activo' ? 'st-activo' : 'st-pend');
+    const stTxt   = p.estado === 'done' ? `✓ ${kg} kg` : (p.estado === 'activo' ? 'En sitio' : 'Pendiente');
+    return `
+    <div class="parada ${p.estado === 'done' ? 'done' : ''} ${p.estado === 'activo' ? 'active' : ''}" onclick="abrirParada(${p.id})">
+      <div class="p-icon">${p.estado === 'done' ? '✅' : p.icon}</div>
+      <div class="p-info">
+        <div class="p-name">${p.nombre}</div>
+        <div class="p-sub">${p.dir}</div>
+      </div>
+      <span class="p-status ${stClass}">${stTxt}</span>
+    </div>`;
+  }).join('');
+
+  const done = PARADAS.filter(p => p.estado === 'done').length;
+  document.getElementById('rp-done').textContent = done;
+  document.getElementById('rp-total').textContent = PARADAS.length;
+  document.getElementById('rp-kg').textContent = PARADAS.reduce((s,p) => s + totalKg(p.kg), 0).toLocaleString();
+
+  if (done === PARADAS.length) mostrarFin();
+}
+
+function totalKg(kgObj) {
+  return GRUPOS.reduce((s,g) => s + (Number(kgObj[g.id]) || 0), 0);
+}
+
+function abrirParada(id) {
+  const p = PARADAS.find(x => x.id === id);
+  if (!p) return;
+  paradaActiva = p;
+  if (p.estado === 'pend') p.estado = 'activo';
+
+  document.getElementById('d-nombre').textContent = `${p.icon} ${p.nombre}`;
+  document.getElementById('f-llegada').value = p.llegada;
+  document.getElementById('f-salida').value  = p.salida;
+  document.getElementById('f-obs').value     = p.obs;
+
+  document.getElementById('grupos').innerHTML = GRUPOS.map(g => `
+    <div class="grupo-row">
+      <div class="g-icon">${g.icon}</div>
+      <div class="g-name">${g.name}</div>
+      <div class="stepper">
+        <button onclick="step('${g.id}', -5)">−</button>
+        <input type="number" id="kg-${g.id}" min="0" value="${p.kg[g.id] || 0}" oninput="updTotal()">
+        <button onclick="step('${g.id}', 5)">+</button>
+      </div>
+      <span class="kg-lbl">kg</span>
+    </div>
+  `).join('');
+  updTotal();
+
+  document.getElementById('lista-paradas').style.display = 'none';
+  document.getElementById('detalle').style.display = 'block';
+  renderLista();
+  document.getElementById('lista-paradas').style.display = 'none';
+  window.scrollTo(0, 0);
+
+  if (!p.llegada) { setHora('f-llegada'); }
+}
+
+function step(gid, delta) {
+  const inp = document.getElementById('kg-' + gid);
+  inp.value = Math.max(0, (Number(inp.value) || 0) + delta);
+  updTotal();
+}
+
+function updTotal() {
+  let t = 0;
+  GRUPOS.forEach(g => t += Number(document.getElementById('kg-' + g.id).value) || 0);
+  document.getElementById('d-total').textContent = t.toLocaleString();
+}
+
+function setHora(id) {
+  const now = new Date();
+  document.getElementById(id).value =
+    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+
+function volverALista() {
+  guardarCampos();
+  document.getElementById('detalle').style.display = 'none';
+  document.getElementById('lista-paradas').style.display = 'flex';
+  renderLista();
+  window.scrollTo(0, 0);
+}
+
+function guardarCampos() {
+  if (!paradaActiva) return;
+  paradaActiva.llegada = document.getElementById('f-llegada').value;
+  paradaActiva.salida  = document.getElementById('f-salida').value;
+  paradaActiva.obs     = document.getElementById('f-obs').value;
+  GRUPOS.forEach(g => paradaActiva.kg[g.id] = Number(document.getElementById('kg-' + g.id).value) || 0);
+}
+
+function cerrarParada() {
+  guardarCampos();
+  const p = paradaActiva;
+  if (!p.llegada) { showToast('Registra la hora de llegada', true); return; }
+  if (totalKg(p.kg) <= 0) { showToast('Captura los kg de al menos un grupo', true); return; }
+  if (!p.salida) { setHora('f-salida'); p.salida = document.getElementById('f-salida').value; }
+
+  p.estado = 'done';
+  showToast(`${p.nombre}: ${totalKg(p.kg)} kg registrados ✓`);
+  volverALista();
+}
+
+function mostrarFin() {
+  document.getElementById('lista-paradas').style.display = 'none';
+  document.getElementById('detalle').style.display = 'none';
+  document.querySelector('.demo-note').style.display = 'none';
+
+  const totalDia = PARADAS.reduce((s,p) => s + totalKg(p.kg), 0);
+  const porGrupo = GRUPOS.map(g => ({
+    ...g, kg: PARADAS.reduce((s,p) => s + (Number(p.kg[g.id]) || 0), 0)
+  })).filter(g => g.kg > 0);
+
+  document.getElementById('resumen-rows').innerHTML =
+    PARADAS.map(p => `
+      <div class="resumen-row">
+        <span>${p.icon} ${p.nombre} <span style="color:var(--text2);font-size:11px">(${p.llegada}–${p.salida})</span></span>
+        <span class="rr-val">${totalKg(p.kg)} kg</span>
+      </div>`).join('') +
+    `<div class="resumen-row" style="margin-top:6px">
+      <span><strong>Total del día</strong></span>
+      <span class="rr-val" style="color:var(--accent)">${totalDia.toLocaleString()} kg</span>
+    </div>` +
+    porGrupo.map(g => `
+      <div class="resumen-row">
+        <span style="color:var(--text2)">${g.icon} ${g.name}</span>
+        <span class="rr-val">${g.kg} kg</span>
+      </div>`).join('');
+
+  document.getElementById('pantalla-fin').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function showToast(msg, error=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (error ? ' error' : '');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+renderLista();
+</script>
+</body>
+</html>

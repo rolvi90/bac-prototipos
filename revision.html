@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAC · Guía para revisores</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e0dbd2;
+    --accent: #1a3a2a;
+    --accent-light: #2d6248;
+    --accent-bg: #e8f0ec;
+    --text: #1a1a18;
+    --text2: #6b6760;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .header {
+    background: var(--accent); color: white;
+    padding: 32px 24px; text-align: center;
+  }
+  .header .logo { font-size: 36px; margin-bottom: 10px; }
+  .header h1 { font-family: var(--display); font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .header p { font-size: 14px; opacity: .8; max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+  .container { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+
+  .intro {
+    background: var(--accent-bg); border-radius: 14px; padding: 16px 18px;
+    font-size: 14px; color: var(--accent-light); line-height: 1.65; margin-bottom: 24px;
+  }
+  .intro strong { color: var(--accent); }
+
+  h2 {
+    font-family: var(--display); font-size: 17px; font-weight: 700;
+    margin: 28px 0 12px; display: flex; align-items: center; gap: 8px;
+  }
+
+  .paso {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 10px;
+  }
+  .paso-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .paso-num {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    background: var(--accent); color: white;
+    font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .paso h3 { font-family: var(--display); font-size: 15px; font-weight: 600; flex: 1; }
+  .paso a.abrir {
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    background: var(--accent-bg); border: 1px solid var(--accent-light);
+    padding: 6px 12px; border-radius: 8px; text-decoration: none; white-space: nowrap;
+  }
+  .paso p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+  .paso p strong { color: var(--text); }
+
+  .preguntas { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 6px 18px; }
+  .preg {
+    padding: 13px 0; border-bottom: 1px dashed var(--border);
+    font-size: 14px; line-height: 1.55; display: flex; gap: 10px;
+  }
+  .preg:last-child { border-bottom: none; }
+  .preg .num { color: var(--accent); font-weight: 700; font-family: var(--display); flex-shrink: 0; }
+
+  .como {
+    background: #fef9c3; border: 1px solid #fde68a; border-radius: 14px;
+    padding: 16px 18px; font-size: 14px; color: #78350f; line-height: 1.65; margin-top: 24px;
+  }
+
+  .volver {
+    display: block; text-align: center; margin-top: 28px;
+    font-size: 14px; color: var(--accent); font-weight: 600; text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">🔍</div>
+  <h1>Guía para revisores</h1>
+  <p>Gracias por ayudarnos a mejorar el sistema del banco de alimentos. Esto es un <strong>prototipo</strong>: nada es definitivo y tu opinión va a definir cómo se construye la versión real.</p>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <strong>Importante:</strong> todos los datos son inventados y nada se guarda — puedes picarle a todo sin miedo. Si algo "se descompone", solo recarga la página. Funciona igual en celular que en computadora.
+  </div>
+
+  <h2>🗺️ Recorrido sugerido (15–20 min)</h2>
+
+  <div class="paso">
+    <div class="paso-top">
+      <div class="paso-num">1</div>
+      <h3>🚚 Rescate</h3>
+      <a class="abrir" href="bac-rescate.html">Abrir →</a>
+    </div>
+    <p>Ponte en los zapatos del <strong>chofer</strong>: abre una parada, registra hora de llegada, captura kilos por grupo con los botones +/− y cierra la parada. ¿Es así de simple la recolección real? ¿Faltan o sobran grupos de alimentos?</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-top">
+      <div class="paso-num">2</div>
+      <h3>📦 Almacén</h3>
+      <a class="abrir" href="bac-almacen.html">Abrir →</a>
+    </div>
+    <p>Como <strong>almacenista</strong>: selecciona un rescate por recibir, revisa la clasificación con el semáforo 🟢🟡🔴, cambia algún artículo a amarillo o rojo, y confirma la recepción. Luego ve a la pestaña Inventario. ¿El semáforo refleja cómo clasifican hoy? ¿Las ubicaciones (seco/refri/congelador) son las correctas?</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-top">
+      <div class="paso-num">3</div>
+      <h3>📋 Trabajo social</h3>
+      <a class="abrir" href="bac-social.html">Abrir →</a>
+    </div>
+    <p>Prueba el <strong>pase de lista</strong>: marca quién sí va, mira cómo cambia el número de paquetes, prueba "Importar Excel" y envía la demanda al nutriólogo. ¿Así se trabajaría el padrón en la realidad?</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-top">
+      <div class="paso-num">4</div>
+      <h3>🥗 Planeación</h3>
+      <a class="abrir" href="bac-planeacion.html">Abrir →</a>
+    </div>
+    <p>Como <strong>nutriólogo o jefe</strong>: revisa la demanda, ajusta los kilos por paquete y observa cómo el sistema calcula cuántos paquetes alcanzan y qué producto es el limitante. Genera la orden de salida. ¿Este cálculo les serviría tal cual?</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-top">
+      <div class="paso-num">5</div>
+      <h3>🤝 Entregas</h3>
+      <a class="abrir" href="bac-entregas.html">Abrir →</a>
+    </div>
+    <p>Como <strong>chofer en comunidad</strong>: toca "simular sin señal" arriba, registra la entrega completa (llegada, paquetes, cuota) y ciérrala. Después toca "recuperar señal" y mira cómo se sincroniza sola. Esto es clave: ¿así funcionan las entregas donde no hay cobertura?</p>
+  </div>
+
+  <div class="paso">
+    <div class="paso-top">
+      <div class="paso-num">6</div>
+      <h3>📊 Panel de dirección</h3>
+      <a class="abrir" href="bac-panel.html">Abrir →</a>
+    </div>
+    <p>Cambia entre Hoy / Semana / Mes. ¿Estos son los números que la dirección necesita ver? ¿Falta algún indicador para reportar a Cáritas o a la red?</p>
+  </div>
+
+  <h2>❓ Preguntas que nos interesa que respondas</h2>
+  <div class="preguntas">
+    <div class="preg"><span class="num">1.</span><span>¿Qué dato que <strong>hoy sí registras</strong> en tu operación no aparece en el sistema?</span></div>
+    <div class="preg"><span class="num">2.</span><span>¿Qué pantalla o campo te parece que <strong>sobra o complica</strong> de más?</span></div>
+    <div class="preg"><span class="num">3.</span><span>¿Los <strong>grupos de alimentos</strong> y el <strong>semáforo</strong> corresponden a cómo trabajan realmente?</span></div>
+    <div class="preg"><span class="num">4.</span><span>¿Quién usaría cada módulo y <strong>desde qué aparato</strong> (celular propio, teléfono del banco, computadora)?</span></div>
+    <div class="preg"><span class="num">5.</span><span>Si solo pudiéramos construir <strong>un módulo primero</strong>, ¿cuál te resolvería más?</span></div>
+  </div>
+
+  <div class="como">
+    📝 <strong>¿Cómo mandar tus comentarios?</strong> Anota el nombre del módulo + tu observación (puede ser foto de pantalla con audio de WhatsApp) y envíaselos a Rolando. No hay comentario pequeño: si algo te estorbó 2 segundos, eso también cuenta.
+  </div>
+
+  <a class="volver" href="index.html">← Volver al inicio</a>
+</div>
+
+</body>
+</html>
