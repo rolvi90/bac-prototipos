@@ -121,6 +121,20 @@
   .sem-a.on { border-color: #d97706; background: #fef3c7; }
   .sem-r.on { border-color: #dc2626; background: #fee2e2; }
 
+  .compara-wrap { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface2); overflow-x: auto; }
+  .compara-wrap .compara-row { min-width: 380px; }
+  .compara-head { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 10px; }
+  .compara-row {
+    display: grid; grid-template-columns: 1.4fr 90px 90px 100px; gap: 10px; align-items: center;
+    font-size: 13px; padding: 6px 0;
+  }
+  .compara-row.head { font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--text2); }
+  .compara-row .cg-num { text-align: right; font-family: var(--display); font-weight: 600; }
+  .compara-row .cg-diff { text-align: right; font-weight: 700; }
+  .cg-diff.ok    { color: var(--ok); }
+  .cg-diff.warn  { color: var(--warn); }
+  .cg-diff.bad   { color: var(--danger); }
+
   .add-row-btn {
     margin: 12px 18px; padding: 10px 16px;
     background: var(--surface2); border: 1px dashed var(--border);
@@ -220,6 +234,12 @@
         </div>
         <span class="badge b-kg" id="cl-kg">— kg declarados</span>
       </div>
+      <div class="compara-wrap">
+        <div class="compara-head">
+          <span>⚖️ Comparativo: lo que reportó el chofer (app móvil) vs lo que se está clasificando aquí</span>
+        </div>
+        <div id="compara-rows"></div>
+      </div>
       <div class="tbl-wrap">
         <table>
           <thead>
@@ -304,12 +324,13 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const GRUPOS = ['Frutas y verduras','Proteína','Lácteos','Panadería','Abarrotes','No comestible'];
+const GRUPOS = ['Frutas y verduras','Proteína','Lácteos','Panadería','Abarrotes','No comestible','Hogar','Vestimenta'];
 const UBICS = { seco:'🏬 Seco', refri:'❄️ Refrigerador', cong:'🧊 Congelador' };
 
 // ── Rescates que llegan hoy (vienen del módulo de rescate) ──
 const RESCATES = [
   { id:'RES-0522-1', icon:'🚚', origen:'Ruta matutina · Juan Pérez',  detalle:'Soriana Centro + HEB Valle', kg:385, estado:'pend',
+    declarado:{ 'Frutas y verduras':170, 'Proteína':55, 'Lácteos':80, 'Panadería':50, 'Abarrotes':30 },
     prellenado:[
       { art:'Manzana',        grupo:'Frutas y verduras', kg:60 },
       { art:'Plátano',        grupo:'Frutas y verduras', kg:45 },
@@ -322,6 +343,7 @@ const RESCATES = [
       { art:'Arroz',          grupo:'Abarrotes',         kg:30 },
     ]},
   { id:'RES-0522-2', icon:'🚚', origen:'Ruta vespertina · Pedro Solís', detalle:'Walmart Universidad + Costco', kg:290, estado:'pend',
+    declarado:{ 'Frutas y verduras':120, 'Proteína':35, 'Lácteos':20, 'Panadería':50, 'Abarrotes':40, 'No comestible':30 },
     prellenado:[
       { art:'Naranja',        grupo:'Frutas y verduras', kg:80 },
       { art:'Zanahoria',      grupo:'Frutas y verduras', kg:35 },
@@ -399,7 +421,36 @@ function abrirRescate(id) {
   document.getElementById('clasif-panel').style.display = 'block';
   renderRescates();
   renderFilas();
+  renderComparativo();
   document.getElementById('clasif-panel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function renderComparativo() {
+  const r = RESCATES.find(x => x.id === rescateSel);
+  if (!r || !r.declarado) {
+    document.getElementById('compara-rows').innerHTML = '<div style="font-size:12px;color:var(--text2)">Donativo directo — sin declaración previa del chofer para comparar.</div>';
+    return;
+  }
+  const recibidoPorGrupo = {};
+  filas.forEach(f => { recibidoPorGrupo[f.grupo] = (recibidoPorGrupo[f.grupo] || 0) + (f.kg || 0); });
+
+  const grupos = Array.from(new Set([...Object.keys(r.declarado), ...Object.keys(recibidoPorGrupo)]));
+
+  document.getElementById('compara-rows').innerHTML =
+    `<div class="compara-row head"><span>Grupo</span><span style="text-align:right">Chofer</span><span style="text-align:right">Almacén</span><span style="text-align:right">Diferencia</span></div>` +
+    grupos.map(g => {
+      const decl = r.declarado[g] || 0;
+      const rec  = recibidoPorGrupo[g] || 0;
+      const diff = rec - decl;
+      const cls  = diff === 0 ? 'ok' : (Math.abs(diff) <= 5 ? 'warn' : 'bad');
+      const txt  = diff === 0 ? '✓ igual' : (diff > 0 ? `+${diff} kg` : `${diff} kg`);
+      return `<div class="compara-row">
+        <span>${g}</span>
+        <span class="cg-num">${decl}</span>
+        <span class="cg-num">${rec}</span>
+        <span class="cg-diff ${cls}">${txt}</span>
+      </div>`;
+    }).join('');
 }
 
 function sugerirDestino(grupo) {
@@ -413,7 +464,7 @@ function renderFilas() {
     <tr>
       <td><input class="cell-input" style="width:150px" value="${f.art}" onchange="filas[${f.id}].art = this.value"></td>
       <td>
-        <select class="cell-input" onchange="filas[${f.id}].grupo = this.value">
+        <select class="cell-input" onchange="filas[${f.id}].grupo = this.value; renderComparativo()">
           ${GRUPOS.map(g => `<option ${g === f.grupo ? 'selected' : ''}>${g}</option>`).join('')}
         </select>
       </td>
@@ -449,6 +500,7 @@ function updSemResumen() {
   document.getElementById('sum-v').textContent = sum('v');
   document.getElementById('sum-a').textContent = sum('a');
   document.getElementById('sum-r').textContent = sum('r');
+  renderComparativo();
 }
 
 function agregarFila() {

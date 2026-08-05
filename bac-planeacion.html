@@ -36,13 +36,27 @@
   .topbar h1 { font-family: var(--display); font-size: 17px; font-weight: 700; flex: 1; }
   .topbar .user { font-size: 12px; opacity: .8; }
 
-  .container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 64px; }
+  .nav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; gap: 4px;
+    position: sticky; top: 50px; z-index: 40;
+  }
+  .nav-item {
+    padding: 13px 18px; font-size: 14px; font-weight: 500; color: var(--text2);
+    cursor: pointer; border-bottom: 2.5px solid transparent;
+  }
+  .nav-item.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+  .container { max-width: 1150px; margin: 0 auto; padding: 24px 20px 64px; }
 
   .demo-note {
     background: #fef9c3; border: 1px solid #fde68a;
     border-radius: 10px; padding: 8px 14px; font-size: 12px; color: #78350f;
     margin-bottom: 18px; text-align: center;
   }
+
+  .page { display: none; }
+  .page.active { display: block; }
 
   h2.page-title { font-family: var(--display); font-size: 19px; font-weight: 700; margin-bottom: 4px; }
   .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 18px; }
@@ -69,12 +83,14 @@
   .panel-head .ph-sub { font-size: 12px; color: var(--text2); }
   .panel-body { padding: 16px 18px; }
 
-  /* ── Demanda ── */
+  /* ── Demanda / lista comunidades-instituciones ── */
   .dem-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 10px 0; border-bottom: 1px solid var(--border);
+    padding: 10px 8px; border-bottom: 1px solid var(--border);
+    border-radius: 10px; cursor: pointer;
   }
   .dem-row:last-child { border-bottom: none; }
+  .dem-row.editando { background: var(--accent-bg); }
   .dem-row .d-com { flex: 1; }
   .dem-row .d-name { font-size: 14px; font-weight: 600; }
   .dem-row .d-sub { font-size: 12px; color: var(--text2); }
@@ -82,7 +98,7 @@
     font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--accent);
     background: var(--accent-bg); border-radius: 10px; padding: 6px 14px; white-space: nowrap;
   }
-  .dem-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+  .dem-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
   .dem-total {
     margin-top: 12px; background: var(--accent-bg); border-radius: 10px; padding: 12px 16px;
     display: flex; justify-content: space-between; align-items: center;
@@ -91,10 +107,11 @@
   .dem-total strong { font-family: var(--display); font-size: 22px; color: var(--accent); }
 
   .fuente-tag { font-size: 10px; background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .editar-tag { font-size: 10px; background: var(--accent); color: white; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
 
   /* ── Composición del paquete ── */
   .comp-row {
-    display: grid; grid-template-columns: 1.4fr 90px 110px; gap: 10px; align-items: center;
+    display: grid; grid-template-columns: 1.3fr 80px 130px; gap: 10px; align-items: center;
     padding: 8px 0; border-bottom: 1px solid var(--border);
   }
   .comp-row:last-child { border-bottom: none; }
@@ -105,11 +122,11 @@
     font-size: 13px; font-weight: 600; font-family: var(--sans); outline: none; color: var(--text);
   }
   .comp-row input:focus { border-color: var(--accent); }
-  .disp-cell { font-size: 12px; text-align: center; }
+  .disp-cell { font-size: 11px; text-align: center; }
   .disp-ok   { color: var(--ok); font-weight: 600; }
   .disp-warn { color: var(--warn); font-weight: 700; }
   .comp-head-row {
-    display: grid; grid-template-columns: 1.4fr 90px 110px; gap: 10px;
+    display: grid; grid-template-columns: 1.3fr 80px 130px; gap: 10px;
     font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--text2);
     padding-bottom: 6px; border-bottom: 1px solid var(--border);
   }
@@ -140,6 +157,27 @@
     cursor: pointer; font-family: var(--display);
   }
   .btn-primary:active { background: var(--accent-light); }
+  .btn-secundario {
+    width: 100%; margin-top: 10px; padding: 12px;
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans);
+  }
+  .btn-secundario:active { background: var(--surface2); }
+
+  /* ── Disponibilidad global ── */
+  .global-panel { margin-top: 18px; }
+  .global-panel table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .global-panel th {
+    text-align: left; padding: 9px 14px; font-size: 10px; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--text2); background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .global-panel td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+  .global-panel tr:last-child td { border-bottom: none; }
+  .global-panel td.num { text-align: right; font-family: var(--display); font-weight: 600; }
+  .gp-ok   { color: var(--ok); }
+  .gp-bad  { color: var(--danger); }
 
   /* ── Orden de salida generada ── */
   .orden {
@@ -156,8 +194,52 @@
   .orden-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
   .og-item label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; display: block; }
   .og-item p { font-size: 14px; font-weight: 600; margin-top: 2px; }
-  .orden-lista { font-size: 13px; line-height: 1.9; color: var(--text2); border-top: 1px dashed var(--border); padding-top: 10px; }
-  .orden-lista strong { color: var(--text); }
+  .orden-com-block { border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 10px; font-size: 13px; line-height: 1.7; }
+  .orden-com-block strong { color: var(--text); }
+  .orden-com-block .ocb-cont { color: var(--text2); font-size: 12px; }
+
+  /* ── Instituciones ── */
+  .inst-prod-row {
+    display: grid; grid-template-columns: 1.4fr 90px auto; gap: 10px; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .inst-prod-row:last-child { border-bottom: none; }
+  .inst-prod-row input[type=text] {
+    padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13px; font-family: var(--sans); color: var(--text); outline: none;
+  }
+  .inst-prod-row input[type=number] {
+    width: 100%; padding: 8px 10px; text-align: center;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; font-weight: 600; font-family: var(--sans); outline: none; color: var(--text);
+  }
+  .btn-quitar-prod {
+    background: none; border: none; color: var(--danger); font-size: 16px; cursor: pointer; padding: 4px 8px;
+  }
+  .cuota-inst-box {
+    background: var(--accent-bg); border-radius: 10px; padding: 12px 14px; margin-top: 12px;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .cuota-inst-box label { font-size: 12px; color: var(--accent-light); font-weight: 600; }
+  .cuota-inst-box input {
+    width: 100px; padding: 8px 10px; text-align: right;
+    background: var(--surface); border: 1px solid var(--accent-light); border-radius: 8px;
+    font-size: 14px; font-weight: 700; font-family: var(--display); color: var(--accent); outline: none;
+  }
+
+  .reporte-panel {
+    margin-top: 18px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px; display: none;
+  }
+  .reporte-panel table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .reporte-panel th {
+    text-align: left; padding: 9px 12px; font-size: 10px; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--text2); background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .reporte-panel td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  .reporte-panel td.num { text-align: right; font-family: var(--display); font-weight: 600; }
+  .reporte-panel tfoot td { border-top: 2px solid var(--accent); border-bottom: none; font-weight: 700; }
+  .rep-title { font-family: var(--display); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
 
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -177,72 +259,144 @@
   <span class="user">Nutrióloga: Ana Treviño</span>
 </div>
 
+<div class="nav">
+  <div class="nav-item active" onclick="switchModo('com', this)">🤝 Comunidades</div>
+  <div class="nav-item" onclick="switchModo('inst', this)">🏢 Instituciones</div>
+</div>
+
 <div class="container">
   <div class="demo-note">🧪 Prototipo demostrativo — la demanda viene de Trabajo Social y la disponibilidad del Inventario</div>
 
-  <h2 class="page-title">Planear reparto</h2>
-  <p class="page-sub">Cruza la demanda confirmada por trabajo social con la disponibilidad real del almacén, define la composición del paquete y genera la orden de salida.</p>
+  <!-- ══════════ COMUNIDADES ══════════ -->
+  <div class="page active" id="page-com">
+    <h2 class="page-title">Planear reparto a comunidades</h2>
+    <p class="page-sub">Cada comunidad puede llevar un paquete distinto: si un producto escasea, decide a quién dárselo completo en vez de repartirlo a medias para todos.</p>
 
-  <div class="day-toggle">
-    <button class="day-btn on" onclick="setDia('hoy', this)">📅 Hoy · mar 22</button>
-    <button class="day-btn" onclick="setDia('man', this)">Mañana · mié 23</button>
-  </div>
-
-  <div class="layout">
-
-    <!-- ── Columna 1: Demanda ── -->
-    <div class="panel">
-      <div class="panel-head">
-        <h3>🤝 Demanda por comunidad</h3>
-        <span class="fuente-tag">desde Trabajo Social</span>
-      </div>
-      <div class="panel-body">
-        <div id="demanda-rows"></div>
-        <div class="dem-total">
-          <span>Paquetes a preparar</span>
-          <strong id="dem-total">0</strong>
-        </div>
-      </div>
+    <div class="day-toggle">
+      <button class="day-btn on" onclick="setDia('hoy', this)">📅 Hoy · mar 22</button>
+      <button class="day-btn" onclick="setDia('man', this)">Mañana · mié 23</button>
     </div>
 
-    <!-- ── Columna 2: Paquete ── -->
-    <div class="panel">
-      <div class="panel-head">
-        <h3>📦 Composición del paquete</h3>
-        <span class="ph-sub">disponibilidad en tiempo real</span>
-      </div>
-      <div class="panel-body">
-        <div class="comp-head-row">
-          <span>Producto</span>
-          <span style="text-align:center">Kg / paquete</span>
-          <span style="text-align:center">Disponible</span>
+    <div class="layout">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>🤝 Demanda por comunidad</h3>
+          <span class="fuente-tag">desde Trabajo Social</span>
         </div>
-        <div id="comp-rows"></div>
-        <div class="kg-paquete">
-          <span>Peso del paquete</span>
-          <span><strong id="kg-paq">0</strong> kg</span>
-        </div>
-        <div class="calc-box" id="calc-box">
-          <div class="calc-main">
-            <span>Paquetes que alcanzan con el inventario</span>
-            <strong id="calc-alcanzan">—</strong>
+        <div class="panel-body">
+          <div id="demanda-rows"></div>
+          <div class="dem-total">
+            <span>Paquetes a preparar</span>
+            <strong id="dem-total">0</strong>
           </div>
-          <div class="calc-detail" id="calc-detalle">—</div>
         </div>
-        <button class="btn-primary" onclick="generarOrden()">📋 Generar orden de salida</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>📦 Composición · <span id="comp-titulo">—</span></h3>
+          <span class="editar-tag">editando esta comunidad</span>
+        </div>
+        <div class="panel-body">
+          <div class="comp-head-row">
+            <span>Producto</span>
+            <span style="text-align:center">Kg/paq</span>
+            <span style="text-align:center">Disponible para ella</span>
+          </div>
+          <div id="comp-rows"></div>
+          <div class="kg-paquete">
+            <span>Peso del paquete de esta comunidad</span>
+            <span><strong id="kg-paq">0</strong> kg</span>
+          </div>
+          <div class="calc-box" id="calc-box">
+            <div class="calc-main">
+              <span>Paquetes que alcanzan para ella</span>
+              <strong id="calc-alcanzan">—</strong>
+            </div>
+            <div class="calc-detail" id="calc-detalle">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel global-panel">
+      <div class="panel-head">
+        <h3>📊 Disponibilidad global</h3>
+        <span class="ph-sub">sumando lo que necesitan TODAS las comunidades seleccionadas</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Producto</th><th style="text-align:right">Necesario (todas)</th><th style="text-align:right">Disponible</th><th style="text-align:right">Balance</th></tr></thead>
+          <tbody id="global-rows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="generarOrden()">📋 Generar orden de salida</button>
+
+    <div class="orden" id="orden">
+      <div class="orden-head">
+        <h3>Orden de salida generada</h3>
+        <span class="folio" id="or-folio">SAL-0522-01</span>
+      </div>
+      <div class="orden-body">
+        <div class="orden-grid" id="or-grid"></div>
+        <div id="or-lista"></div>
       </div>
     </div>
   </div>
 
-  <!-- ── Orden generada ── -->
-  <div class="orden" id="orden">
-    <div class="orden-head">
-      <h3>Orden de salida generada</h3>
-      <span class="folio" id="or-folio">SAL-0522-01</span>
+  <!-- ══════════ INSTITUCIONES ══════════ -->
+  <div class="page" id="page-inst">
+    <h2 class="page-title">Planear entregas a instituciones</h2>
+    <p class="page-sub">Asilos, comedores y albergues: llevan número de beneficiarios, un desglose de producto distinto al de comunidades, y su propia cuota de recuperación total.</p>
+
+    <div class="layout">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>🏢 Instituciones registradas</h3>
+          <span class="fuente-tag">padrón importable</span>
+        </div>
+        <div class="panel-body">
+          <div id="inst-rows"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>📦 Desglose · <span id="inst-titulo">—</span></h3>
+          <span class="editar-tag">editando esta institución</span>
+        </div>
+        <div class="panel-body">
+          <div id="inst-prods"></div>
+          <button class="btn-secundario" onclick="agregarProdInst()">＋ Agregar producto</button>
+          <div class="cuota-inst-box">
+            <label>Cuota de recuperación total ($)</label>
+            <input type="number" id="inst-cuota" min="0" step="10" oninput="updInstCuota()">
+          </div>
+          <div class="kg-paquete">
+            <span>Kg totales para esta institución</span>
+            <span><strong id="inst-kg-total">0</strong> kg</span>
+          </div>
+          <div class="kg-paquete">
+            <span>Cuota por kg</span>
+            <span><strong id="inst-cuota-kg">$0.00</strong></span>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="orden-body">
-      <div class="orden-grid" id="or-grid"></div>
-      <div class="orden-lista" id="or-lista"></div>
+
+    <button class="btn-primary" onclick="toggleReporteInst()">📋 Generar reporte de entregas a instituciones</button>
+
+    <div class="reporte-panel" id="reporte-inst">
+      <div class="rep-title">📋 Reporte de entregas a instituciones · hoy mar 22</div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Institución</th><th style="text-align:right">Beneficiarios</th><th style="text-align:right">Kg</th><th style="text-align:right">Cuota ($)</th><th style="text-align:right">Cuota/kg</th></tr></thead>
+          <tbody id="rep-inst-rows"></tbody>
+          <tfoot id="rep-inst-foot"></tfoot>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -250,49 +404,75 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ═══════════ Datos compartidos ═══════════
+const DISPONIBLE = [
+  { prod:'Arroz',          sem:'v', kg:250 },
+  { prod:'Frijol',         sem:'v', kg:330 },
+  { prod:'Pasta',          sem:'v', kg:135 },
+  { prod:'Aceite vegetal', sem:'v', kg:165 },
+  { prod:'Atún en lata',   sem:'v', kg:220 },
+  { prod:'Manzana',        sem:'a', kg:108 },
+  { prod:'Naranja',        sem:'a', kg:80  },
+  { prod:'Tomate',         sem:'a', kg:70  },
+  { prod:'Pollo entero',   sem:'v', kg:165 },
+  { prod:'Leche entera',   sem:'a', kg:150 },
+  { prod:'Pan dulce',      sem:'a', kg:90  },
+  { prod:'Galletas',       sem:'v', kg:80  },
+];
+const DEFAULT_COMP = [1, 1, 0.5, 0.9, 0.6, 1, 1, 0.8, 1.2, 1, 0.8, 0.4];
+
+function comp(overrides) { return DISPONIBLE.map((p,i) => overrides[i] !== undefined ? overrides[i] : DEFAULT_COMP[i]); }
+
 // Demanda confirmada por trabajo social (pase de lista del día)
 const DEMANDA = {
   hoy: [
-    { com:'Col. Fomerrey 45',    resp:'Sra. Carmen Ruiz',  fam:52, paq:48, sel:true },
-    { com:'Ejido La Esperanza',  resp:'Sr. José Martínez', fam:38, paq:35, sel:true },
-    { com:'Col. Independencia',  resp:'Sra. Luz Elena G.', fam:45, paq:41, sel:false },
+    { com:'Col. Fomerrey 45',    resp:'Sra. Carmen Ruiz',  fam:52, paq:48, sel:true,  comp:comp({5:1,   6:0}) },
+    { com:'Ejido La Esperanza',  resp:'Sr. José Martínez', fam:38, paq:35, sel:true,  comp:comp({5:0.5, 6:1}) },
+    { com:'Col. Independencia',  resp:'Sra. Luz Elena G.', fam:45, paq:41, sel:false, comp:comp({5:0.5, 6:1}) },
   ],
   man: [
-    { com:'San Bernabé Sector 3', resp:'Sra. Paty Flores',  fam:60, paq:55, sel:true },
-    { com:'Ciénega de Flores',    resp:'Sr. Raúl Cantú',    fam:33, paq:30, sel:true },
+    { com:'San Bernabé Sector 3', resp:'Sra. Paty Flores',  fam:60, paq:55, sel:true, comp:comp({5:1, 6:0}) },
+    { com:'Ciénega de Flores',    resp:'Sr. Raúl Cantú',    fam:33, paq:30, sel:true, comp:comp({5:1, 6:1}) },
   ],
 };
 
-// Disponibilidad (viene del inventario; a = poca vida => priorizar)
-const DISPONIBLE = [
-  { prod:'Arroz',          sem:'v', kg:250, sug:1   },
-  { prod:'Frijol',         sem:'v', kg:330, sug:1   },
-  { prod:'Pasta',          sem:'v', kg:135, sug:0.5 },
-  { prod:'Aceite vegetal', sem:'v', kg:165, sug:0.9 },
-  { prod:'Atún en lata',   sem:'v', kg:220, sug:0.6 },
-  { prod:'Manzana',        sem:'a', kg:108, sug:1   },
-  { prod:'Naranja',        sem:'a', kg:80,  sug:1   },
-  { prod:'Tomate',         sem:'a', kg:70,  sug:0.8 },
-  { prod:'Pollo entero',   sem:'v', kg:165, sug:1.2 },
-  { prod:'Leche entera',   sem:'a', kg:150, sug:1   },
-  { prod:'Pan dulce',      sem:'a', kg:90,  sug:0.8 },
-  { prod:'Galletas',       sem:'v', kg:80,  sug:0.4 },
+const INSTITUCIONES = [
+  { nombre:'Asilo Divina Providencia', tipo:'Asilo de ancianos', benef:34, resp:'Hna. Rosario Díaz', sel:true, cuota:350,
+    prods:[{prod:'Arroz',kg:15},{prod:'Frijol',kg:20},{prod:'Pollo entero',kg:25},{prod:'Leche entera',kg:18},{prod:'Pan dulce',kg:10}] },
+  { nombre:'Comedor Infantil San José', tipo:'Comedor comunitario', benef:60, resp:'Lic. Marta Elizondo', sel:true, cuota:500,
+    prods:[{prod:'Arroz',kg:25},{prod:'Frijol',kg:30},{prod:'Pasta',kg:15},{prod:'Manzana',kg:20},{prod:'Leche entera',kg:22}] },
+  { nombre:'Albergue Nueva Esperanza', tipo:'Albergue temporal', benef:22, resp:'Sr. Adrián Cepeda', sel:true, cuota:0,
+    prods:[{prod:'Arroz',kg:10},{prod:'Frijol',kg:12},{prod:'Atún en lata',kg:15},{prod:'Galletas',kg:8}] },
 ];
 
 let dia = 'hoy';
+let comunidadEditando = 0;
+let institucionEditando = 0;
 let ordenNum = 0;
 
+// ═══════════ Tabs de modo ═══════════
+function switchModo(modo, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(modo === 'com' ? 'page-com' : 'page-inst').classList.add('active');
+  if (modo === 'inst') renderInstituciones();
+}
+
+// ═══════════ COMUNIDADES ═══════════
 function setDia(d, btn) {
   dia = d;
+  comunidadEditando = 0;
   document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
+  document.getElementById('orden').style.display = 'none';
   renderDemanda();
 }
 
 function renderDemanda() {
   document.getElementById('demanda-rows').innerHTML = DEMANDA[dia].map((d, i) => `
-    <div class="dem-row">
-      <input type="checkbox" ${d.sel ? 'checked' : ''} onchange="DEMANDA[dia][${i}].sel = this.checked; updDemanda()">
+    <div class="dem-row ${i === comunidadEditando ? 'editando' : ''}" onclick="editarComunidad(${i})">
+      <input type="checkbox" ${d.sel ? 'checked' : ''} onclick="event.stopPropagation()" onchange="DEMANDA[dia][${i}].sel = this.checked; renderDemanda()">
       <div class="d-com">
         <div class="d-name">${d.com}</div>
         <div class="d-sub">Responsable: ${d.resp} · ${d.fam} familias en padrón</div>
@@ -300,67 +480,86 @@ function renderDemanda() {
       <div class="d-paq">${d.paq}</div>
     </div>
   `).join('');
-  updDemanda();
-}
 
-function updDemanda() {
   const tot = DEMANDA[dia].filter(d => d.sel).reduce((s,d) => s + d.paq, 0);
   document.getElementById('dem-total').textContent = tot;
-  calc();
+
+  renderComp();
+  renderGlobal();
+}
+
+function editarComunidad(i) {
+  comunidadEditando = i;
+  renderDemanda();
 }
 
 function renderComp() {
+  const d = DEMANDA[dia][comunidadEditando];
+  document.getElementById('comp-titulo').textContent = d.com;
+
   document.getElementById('comp-rows').innerHTML = DISPONIBLE.map((p, i) => `
     <div class="comp-row">
-      <div class="c-prod"><span class="dot dot-${p.sem}"></span>${p.prod}${p.sem === 'a' ? ' <span style="font-size:10px;color:var(--warn);font-weight:700">PRIORIZAR</span>' : ''}</div>
-      <input type="number" step="0.1" min="0" value="${p.sug}" id="comp-${i}" oninput="calc()">
-      <div class="disp-cell" id="disp-${i}">${p.kg} kg</div>
+      <div class="c-prod"><span class="dot dot-${p.sem}"></span>${p.prod}${p.sem === 'a' ? ' <span style="font-size:10px;color:var(--warn);font-weight:700">ESCASO</span>' : ''}</div>
+      <input type="number" step="0.1" min="0" value="${d.comp[i]}" oninput="DEMANDA[dia][comunidadEditando].comp[${i}] = Number(this.value)||0; calcComunidad(); renderGlobal()">
+      <div class="disp-cell" id="disp-${i}"></div>
     </div>
   `).join('');
-  calc();
+  calcComunidad();
 }
 
-function calc() {
-  const paqNecesarios = DEMANDA[dia].filter(d => d.sel).reduce((s,d) => s + d.paq, 0);
-  let kgPaq = 0;
-  let limitante = null;
-  let minPaq = Infinity;
+function otrosNecesitan(prodIndex, excluirIdx) {
+  return DEMANDA[dia].filter((d,i) => d.sel && i !== excluirIdx).reduce((s,d) => s + d.paq * (d.comp[prodIndex] || 0), 0);
+}
+
+function calcComunidad() {
+  const d = DEMANDA[dia][comunidadEditando];
+  let kgPaq = 0, limitante = null, minPaq = Infinity;
 
   DISPONIBLE.forEach((p, i) => {
-    const porPaq = Number(document.getElementById('comp-' + i)?.value) || 0;
+    const porPaq = d.comp[i] || 0;
     kgPaq += porPaq;
     const cell = document.getElementById('disp-' + i);
     if (!cell) return;
+    const dispParaEsta = p.kg - otrosNecesitan(i, comunidadEditando);
     if (porPaq > 0) {
-      const alcanza = Math.floor(p.kg / porPaq);
+      const alcanza = Math.floor(Math.max(0, dispParaEsta) / porPaq);
       if (alcanza < minPaq) { minPaq = alcanza; limitante = p.prod; }
-      const suficiente = alcanza >= paqNecesarios;
+      const suficiente = alcanza >= d.paq;
       cell.className = 'disp-cell ' + (suficiente ? 'disp-ok' : 'disp-warn');
-      cell.innerHTML = `${p.kg} kg<br><span style="font-size:10px">→ ${alcanza} paq.</span>`;
+      cell.innerHTML = `${Math.max(0, dispParaEsta).toFixed(0)} kg<br><span style="font-size:10px">→ ${alcanza} paq.</span>`;
     } else {
       cell.className = 'disp-cell';
-      cell.textContent = p.kg + ' kg';
+      cell.textContent = Math.max(0, dispParaEsta).toFixed(0) + ' kg';
     }
   });
 
   document.getElementById('kg-paq').textContent = kgPaq.toFixed(1);
-
   const box = document.getElementById('calc-box');
   const alcanzan = minPaq === Infinity ? 0 : minPaq;
   document.getElementById('calc-alcanzan').textContent = alcanzan;
 
-  if (paqNecesarios === 0) {
+  if (alcanzan >= d.paq) {
     box.className = 'calc-box';
-    document.getElementById('calc-detalle').textContent = 'Selecciona al menos una comunidad en la demanda.';
-  } else if (alcanzan >= paqNecesarios) {
-    box.className = 'calc-box';
-    document.getElementById('calc-detalle').textContent =
-      `✅ Alcanza para los ${paqNecesarios} paquetes demandados. Producto limitante: ${limitante}.`;
+    document.getElementById('calc-detalle').textContent = `✅ Alcanza para los ${d.paq} paquetes de ${d.com} (considerando lo que ya se comprometió a otras comunidades). Limitante: ${limitante || '—'}.`;
   } else {
     box.className = 'calc-box alerta';
-    document.getElementById('calc-detalle').textContent =
-      `⚠️ Faltan ${paqNecesarios - alcanzan} paquetes para cubrir la demanda (${paqNecesarios}). Limitante: ${limitante}. Ajusta gramajes o consigue más producto.`;
+    document.getElementById('calc-detalle').textContent = `⚠️ Con lo que queda tras las otras comunidades, solo alcanza para ${alcanzan} de ${d.paq} paquetes. Limitante: ${limitante}. Baja el gramaje de ese producto para esta comunidad.`;
   }
+}
+
+function renderGlobal() {
+  const seleccionadas = DEMANDA[dia].filter(d => d.sel);
+  document.getElementById('global-rows').innerHTML = DISPONIBLE.map((p, i) => {
+    const necesario = seleccionadas.reduce((s,d) => s + d.paq * (d.comp[i] || 0), 0);
+    const balance = p.kg - necesario;
+    const cls = balance >= 0 ? 'gp-ok' : 'gp-bad';
+    return `<tr>
+      <td>${p.prod}</td>
+      <td class="num">${necesario.toFixed(1)}</td>
+      <td class="num">${p.kg}</td>
+      <td class="num ${cls}">${balance >= 0 ? '+' : ''}${balance.toFixed(1)}</td>
+    </tr>`;
+  }).join('');
 }
 
 function generarOrden() {
@@ -369,30 +568,116 @@ function generarOrden() {
 
   ordenNum++;
   const paqTotal = seleccionadas.reduce((s,d) => s + d.paq, 0);
-  const kgPaq = Number(document.getElementById('kg-paq').textContent);
+  const kgTotal = seleccionadas.reduce((s,d) => s + d.paq * d.comp.reduce((a,b) => a+b, 0), 0);
 
   document.getElementById('or-folio').textContent = `SAL-0522-0${ordenNum}`;
   document.getElementById('or-grid').innerHTML = `
     <div class="og-item"><label>Fecha de reparto</label><p>${dia === 'hoy' ? 'Hoy · mar 22 jul' : 'Mañana · mié 23 jul'}</p></div>
     <div class="og-item"><label>Comunidades</label><p>${seleccionadas.length}</p></div>
     <div class="og-item"><label>Paquetes</label><p>${paqTotal}</p></div>
-    <div class="og-item"><label>Peso por paquete</label><p>${kgPaq.toFixed(1)} kg</p></div>
-    <div class="og-item"><label>Carga total</label><p>${(paqTotal * kgPaq).toFixed(0)} kg</p></div>
+    <div class="og-item"><label>Carga total</label><p>${kgTotal.toFixed(0)} kg</p></div>
   `;
 
-  const contenido = DISPONIBLE.map((p, i) => {
-    const v = Number(document.getElementById('comp-' + i).value) || 0;
-    return v > 0 ? `${p.prod} <strong>${v} kg</strong>` : null;
-  }).filter(Boolean).join(' · ');
-
-  document.getElementById('or-lista').innerHTML =
-    seleccionadas.map(d => `<div>🤝 <strong>${d.com}</strong> — ${d.paq} paquetes · recibe ${d.resp}</div>`).join('') +
-    `<div style="margin-top:8px">📦 Contenido por paquete: ${contenido}</div>` +
-    `<div style="margin-top:8px;color:var(--ok)">✅ Enviada al módulo de <strong>Entregas</strong> — el chofer ya la ve en su app.</div>`;
+  document.getElementById('or-lista').innerHTML = seleccionadas.map(d => {
+    const contenido = DISPONIBLE.map((p,i) => d.comp[i] > 0 ? `${p.prod} <strong>${d.comp[i]} kg</strong>` : null).filter(Boolean).join(' · ');
+    const kgPaq = d.comp.reduce((a,b) => a+b, 0);
+    return `<div class="orden-com-block">
+      🤝 <strong>${d.com}</strong> — ${d.paq} paquetes de ${kgPaq.toFixed(1)} kg · recibe ${d.resp}
+      <div class="ocb-cont">📦 ${contenido}</div>
+    </div>`;
+  }).join('') + `<div style="margin-top:10px;color:var(--ok);font-size:13px">✅ Cada comunidad enviada al módulo de <strong>Entregas</strong> con su propia composición — el chofer ya la ve en su app.</div>`;
 
   document.getElementById('orden').style.display = 'block';
   document.getElementById('orden').scrollIntoView({ behavior:'smooth', block:'start' });
-  showToast('Orden de salida generada ✓');
+  showToast('Orden de salida generada, con paquete propio por comunidad ✓');
+}
+
+// ═══════════ INSTITUCIONES ═══════════
+function renderInstituciones() {
+  document.getElementById('inst-rows').innerHTML = INSTITUCIONES.map((ins, i) => {
+    const kg = ins.prods.reduce((s,p) => s + p.kg, 0);
+    return `
+    <div class="dem-row ${i === institucionEditando ? 'editando' : ''}" onclick="editarInstitucion(${i})">
+      <input type="checkbox" ${ins.sel ? 'checked' : ''} onclick="event.stopPropagation()" onchange="INSTITUCIONES[${i}].sel = this.checked">
+      <div class="d-com">
+        <div class="d-name">🏢 ${ins.nombre}</div>
+        <div class="d-sub">${ins.tipo} · ${ins.benef} beneficiarios · resp. ${ins.resp}</div>
+      </div>
+      <div class="d-paq" style="font-size:14px">${kg} kg</div>
+    </div>`;
+  }).join('');
+  renderInstProds();
+}
+
+function editarInstitucion(i) {
+  institucionEditando = i;
+  renderInstituciones();
+}
+
+function renderInstProds() {
+  const ins = INSTITUCIONES[institucionEditando];
+  document.getElementById('inst-titulo').textContent = ins.nombre;
+  document.getElementById('inst-prods').innerHTML = ins.prods.map((p, i) => `
+    <div class="inst-prod-row">
+      <input type="text" value="${p.prod}" onchange="INSTITUCIONES[institucionEditando].prods[${i}].prod = this.value">
+      <input type="number" min="0" value="${p.kg}" oninput="INSTITUCIONES[institucionEditando].prods[${i}].kg = Number(this.value)||0; updInstTotales()">
+      <button class="btn-quitar-prod" onclick="quitarProdInst(${i})">✕</button>
+    </div>
+  `).join('');
+  document.getElementById('inst-cuota').value = ins.cuota;
+  updInstTotales();
+}
+
+function agregarProdInst() {
+  INSTITUCIONES[institucionEditando].prods.push({ prod:'', kg:0 });
+  renderInstProds();
+}
+
+function quitarProdInst(i) {
+  INSTITUCIONES[institucionEditando].prods.splice(i, 1);
+  renderInstProds();
+}
+
+function updInstCuota() {
+  INSTITUCIONES[institucionEditando].cuota = Number(document.getElementById('inst-cuota').value) || 0;
+  updInstTotales();
+}
+
+function updInstTotales() {
+  const ins = INSTITUCIONES[institucionEditando];
+  const kgTotal = ins.prods.reduce((s,p) => s + p.kg, 0);
+  document.getElementById('inst-kg-total').textContent = kgTotal;
+  document.getElementById('inst-cuota-kg').textContent = '$' + (kgTotal > 0 ? (ins.cuota / kgTotal).toFixed(2) : '0.00');
+  renderInstituciones();
+}
+
+function toggleReporteInst() {
+  const panel = document.getElementById('reporte-inst');
+  if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
+
+  const sel = INSTITUCIONES.filter(i => i.sel);
+  let totBenef = 0, totKg = 0, totCuota = 0;
+  document.getElementById('rep-inst-rows').innerHTML = sel.map(ins => {
+    const kg = ins.prods.reduce((s,p) => s + p.kg, 0);
+    totBenef += ins.benef; totKg += kg; totCuota += ins.cuota;
+    return `<tr>
+      <td>${ins.nombre} <span style="color:var(--text2);font-size:11px">(${ins.tipo})</span></td>
+      <td class="num">${ins.benef}</td>
+      <td class="num">${kg}</td>
+      <td class="num">$${ins.cuota.toLocaleString()}</td>
+      <td class="num">$${kg > 0 ? (ins.cuota/kg).toFixed(2) : '0.00'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('rep-inst-foot').innerHTML = `<tr>
+    <td>Total (${sel.length} instituciones)</td>
+    <td class="num">${totBenef}</td>
+    <td class="num">${totKg}</td>
+    <td class="num">$${totCuota.toLocaleString()}</td>
+    <td class="num">$${totKg > 0 ? (totCuota/totKg).toFixed(2) : '0.00'}</td>
+  </tr>`;
+
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 function showToast(msg, error=false) {
@@ -400,11 +685,10 @@ function showToast(msg, error=false) {
   t.textContent = msg;
   t.className = 'toast show' + (error ? ' error' : '');
   clearTimeout(window._tt);
-  window._tt = setTimeout(() => { t.className = 'toast'; }, 3200);
+  window._tt = setTimeout(() => { t.className = 'toast'; }, 3400);
 }
 
 renderDemanda();
-renderComp();
 </script>
 </body>
 </html>

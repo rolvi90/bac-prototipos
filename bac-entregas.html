@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>BAC · Entregas en comunidad</title>
+<title>BAC · Entregas</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
@@ -28,7 +28,7 @@
 
   body {
     font-family: var(--sans); background: var(--bg); color: var(--text);
-    min-height: 100vh; max-width: 480px; margin: 0 auto; padding-bottom: 40px;
+    min-height: 100vh; max-width: 520px; margin: 0 auto; padding-bottom: 40px;
   }
 
   /* ── Barra de conexión ── */
@@ -43,6 +43,14 @@
     border: 1px solid currentColor; background: transparent; color: inherit;
     cursor: pointer; font-family: var(--sans);
   }
+
+  /* ── Tabs de modo ── */
+  .modo-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .modo-tab {
+    flex: 1; text-align: center; padding: 13px 8px; font-size: 13px; font-weight: 600;
+    color: var(--text2); cursor: pointer; border-bottom: 2.5px solid transparent;
+  }
+  .modo-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
   .header {
     background: var(--accent); color: white; padding: 18px 20px 22px;
@@ -86,7 +94,8 @@
     font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .section-header h3 { font-family: var(--display); font-size: 14px; font-weight: 600; }
+  .section-header h3 { font-family: var(--display); font-size: 14px; font-weight: 600; flex: 1; }
+  .section-header .sh-sub { font-size: 11px; color: var(--text2); }
   .section-body { padding: 14px 16px; }
 
   .field { margin-bottom: 12px; }
@@ -99,7 +108,7 @@
     font-family: var(--sans); outline: none; appearance: none;
   }
   .field input:focus { border-color: var(--accent); }
-  .field textarea { resize: none; height: 70px; font-size: 13px; }
+  .field textarea { resize: none; height: 60px; font-size: 13px; }
 
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .hora-group { display: flex; gap: 8px; align-items: flex-end; }
@@ -120,23 +129,82 @@
   }
   .tiempo-calc strong { font-family: var(--display); font-size: 18px; }
 
-  /* Contador de paquetes */
-  .contador {
-    display: flex; align-items: center; justify-content: center; gap: 18px; padding: 8px 0;
+  /* ── Contadores por tipo ── */
+  .tipo-contadores { display: flex; flex-direction: column; gap: 10px; }
+  .tc-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface2); border-radius: 12px; padding: 10px 14px;
   }
-  .contador button {
-    width: 54px; height: 54px; border-radius: 16px;
-    border: 1px solid var(--border); background: var(--surface2);
-    font-size: 26px; font-weight: 600; color: var(--accent);
+  .tc-label { font-size: 13px; font-weight: 600; }
+  .tc-label .tc-sub { font-size: 11px; color: var(--text2); font-weight: 400; display: block; }
+  .tc-stepper { display: flex; align-items: center; gap: 10px; }
+  .tc-stepper button {
+    width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--surface); font-size: 17px; font-weight: 600; color: var(--accent);
     cursor: pointer; font-family: var(--sans);
   }
-  .contador button:active { background: var(--accent-bg); }
-  .contador .cnt {
-    font-family: var(--display); font-size: 44px; font-weight: 700; color: var(--accent);
-    min-width: 90px; text-align: center;
+  .tc-stepper button:active { background: var(--accent-bg); }
+  .tc-stepper .tc-val { font-family: var(--display); font-size: 20px; font-weight: 700; min-width: 28px; text-align: center; }
+  .tp-cuota-dot  { color: var(--accent); }
+  .tp-media-dot  { color: var(--warn); }
+  .tp-donado-dot { color: #1d4ed8; }
+
+  .total-distribuido {
+    margin-top: 12px; background: var(--accent-bg); border-radius: 10px; padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center;
   }
-  .contador-sub { text-align: center; font-size: 12px; color: var(--text2); }
-  .contador-sub.alerta { color: var(--warn); font-weight: 600; }
+  .total-distribuido span { font-size: 13px; color: var(--accent-light); font-weight: 500; }
+  .total-distribuido strong { font-family: var(--display); font-size: 20px; color: var(--accent); }
+
+  /* ── Casos especiales ── */
+  .caso-row {
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 10px; justify-content: space-between;
+  }
+  .caso-row:last-child { border-bottom: none; }
+  .caso-info { flex: 1; min-width: 0; }
+  .caso-nom { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .caso-sustento { font-size: 11px; color: var(--text2); margin-top: 3px; line-height: 1.4; }
+  .caso-obs { font-size: 11px; color: var(--warn); font-weight: 600; margin-top: 3px; line-height: 1.4; }
+  .tp-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .tp-media  { background: #fef3c7; color: #92600a; }
+  .tp-donado { background: #dbeafe; color: #1d4ed8; }
+  .mini-toggle { display: flex; gap: 4px; flex-shrink: 0; }
+  .mini-btn {
+    padding: 6px 10px; border-radius: 16px; font-size: 11px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border); background: transparent; color: var(--text2);
+    font-family: var(--sans);
+  }
+  .mini-btn.si { background: #dcfce7; border-color: #166534; color: #166534; }
+  .mini-btn.no { background: #fee2e2; border-color: #991b1b; color: #991b1b; }
+
+  /* ── Devueltos ── */
+  .dev-row {
+    display: grid; grid-template-columns: 1fr 70px auto; gap: 8px; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .dev-row:last-child { border-bottom: none; }
+  .dev-row select, .dev-row input {
+    padding: 9px 10px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 12px; font-family: var(--sans); color: var(--text); outline: none;
+  }
+  .dev-row input[type=number] { text-align: center; }
+  .btn-quitar { background: none; border: none; color: var(--danger); font-size: 16px; cursor: pointer; }
+  .dev-sugerencia {
+    background: #fef3c7; border: 1px solid #fde68a; border-radius: 10px;
+    padding: 10px 12px; font-size: 12px; color: #78350f; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .dev-sugerencia button {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .btn-agregar-dev {
+    width: 100%; margin-top: 10px; padding: 10px;
+    background: transparent; border: 1px dashed var(--border); border-radius: 10px;
+    color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--sans);
+  }
+  .dev-nota { font-size: 11px; color: var(--text2); margin-top: 8px; line-height: 1.5; }
 
   /* Cuota */
   .cuota-box {
@@ -153,16 +221,22 @@
     cursor: pointer; font-family: var(--display);
   }
   .btn-primary:active { background: var(--accent-light); }
+  .btn-ghost {
+    width: calc(100% - 32px); margin: 8px 16px 0; padding: 13px;
+    background: transparent; border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text2); font-size: 14px;
+    cursor: pointer; font-family: var(--sans);
+  }
 
   /* Pantalla OK */
-  #pantalla-ok { display: none; padding: 32px 24px; text-align: center; }
+  #pantalla-ok, #pantalla-ok-inst { display: none; padding: 32px 24px; text-align: center; }
   .ok-circle {
     width: 80px; height: 80px; border-radius: 50%;
     background: #dcfce7; display: flex; align-items: center; justify-content: center;
     font-size: 36px; margin: 24px auto 20px;
   }
-  #pantalla-ok h2 { font-family: var(--display); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-  #pantalla-ok p { color: var(--text2); font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+  #pantalla-ok h2, #pantalla-ok-inst h2 { font-family: var(--display); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  #pantalla-ok p, #pantalla-ok-inst p { color: var(--text2); font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
   .sync-card {
     border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.5;
     text-align: left; margin-bottom: 10px;
@@ -175,13 +249,18 @@
   }
   .resumen-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px dashed var(--border); }
   .resumen-row:last-child { border-bottom: none; }
-  .resumen-row .rr-val { font-weight: 600; }
-  .btn-ghost {
-    width: 100%; padding: 13px; margin-top: 8px;
-    background: transparent; border: 1.5px solid var(--border);
-    border-radius: 12px; color: var(--text2); font-size: 14px;
-    cursor: pointer; font-family: var(--sans);
-  }
+  .resumen-row .rr-val { font-weight: 600; text-align: right; }
+
+  /* Reporte del día */
+  .reporte-dia { text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 14px; display: none; }
+  .reporte-dia table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .reporte-dia th { text-align: right; padding: 6px 8px; font-size: 9px; text-transform: uppercase; color: var(--text2); border-bottom: 1px solid var(--border); }
+  .reporte-dia th:first-child { text-align: left; }
+  .reporte-dia td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--border); }
+  .reporte-dia td:first-child { text-align: left; font-weight: 600; }
+  .reporte-dia tr:last-child td { border-bottom: none; }
+  .reporte-dia tfoot td { font-weight: 700; border-top: 2px solid var(--accent); border-bottom: none; }
+  .rep-title { font-family: var(--display); font-size: 14px; font-weight: 700; margin-bottom: 10px; }
 
   .demo-note {
     margin: 12px 16px 0; background: #fef9c3; border: 1px solid #fde68a;
@@ -207,23 +286,30 @@
   <button class="conn-toggle" onclick="toggleConn()">simular sin señal</button>
 </div>
 
-<!-- Header -->
+<!-- Tabs de modo -->
+<div class="modo-tabs">
+  <div class="modo-tab active" id="tab-com" onclick="switchModo('com')">🤝 Entrega a comunidad</div>
+  <div class="modo-tab" id="tab-inst" onclick="switchModo('inst')">🏢 Entrega a institución</div>
+</div>
+
+<!-- ══════════════ MODO COMUNIDAD ══════════════ -->
+<div id="modo-com">
+
 <div class="header">
   <div class="header-top">
     <span class="logo">🤝</span>
     <span class="folio-badge">SAL-0522-01</span>
   </div>
   <h1>Entrega en comunidad</h1>
-  <p class="sub">Ejido La Esperanza · Chofer: Juan Pérez</p>
+  <p class="sub" id="com-sub">Ejido La Esperanza · Chofer: Juan Pérez</p>
 </div>
 
-<!-- Orden -->
 <div class="info-card">
   <div class="info-grid">
     <div class="paq-highlight">
       <div>
-        <div class="num">35</div>
-        <div class="lbl">paquetes a entregar</div>
+        <div class="num" id="plan-total">35</div>
+        <div class="lbl">paquetes planeados</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:11px;color:var(--accent-light);margin-bottom:2px">Peso por paquete</div>
@@ -235,15 +321,15 @@
       <p>Sr. José Martínez</p>
     </div>
     <div class="info-item">
-      <label>Cuota de recuperación</label>
-      <p>$20 por paquete</p>
+      <label>Desglose planeado</label>
+      <p id="plan-desglose">—</p>
     </div>
   </div>
 </div>
 
-<div class="demo-note">🧪 Prototipo — prueba el botón "simular sin señal" arriba</div>
+<div class="demo-note">🧪 Prototipo — prueba "simular sin señal" arriba</div>
 
-<div id="captura">
+<div id="captura-com">
   <!-- 1. Tiempos -->
   <div class="section">
     <div class="section-header">
@@ -253,33 +339,21 @@
     <div class="section-body">
       <div class="row-2">
         <div class="hora-group">
-          <div class="field">
-            <label>Salida del banco</label>
-            <input type="time" id="f-salida">
-          </div>
+          <div class="field"><label>Salida del banco</label><input type="time" id="f-salida"></div>
           <button class="btn-ahora" onclick="setHora('f-salida')">Ahora</button>
         </div>
         <div class="hora-group">
-          <div class="field">
-            <label>Llegada a comunidad</label>
-            <input type="time" id="f-llegada">
-          </div>
+          <div class="field"><label>Llegada a comunidad</label><input type="time" id="f-llegada"></div>
           <button class="btn-ahora" onclick="setHora('f-llegada'); calcTraslado()">Ahora</button>
         </div>
       </div>
-      <div class="tiempo-calc" id="tc-traslado">
-        <span>⏱ Traslado</span>
-        <strong id="tc-val">—</strong>
-      </div>
+      <div class="tiempo-calc" id="tc-traslado"><span>⏱ Traslado</span><strong id="tc-val">—</strong></div>
     </div>
   </div>
 
-  <!-- 2. Recepción en comunidad -->
+  <!-- 2. Quién recibe -->
   <div class="section">
-    <div class="section-header">
-      <div class="step-num">2</div>
-      <h3>Quién recibe</h3>
-    </div>
+    <div class="section-header"><div class="step-num">2</div><h3>Quién recibe</h3></div>
     <div class="section-body">
       <div class="field">
         <label>Responsable presente</label>
@@ -291,73 +365,182 @@
     </div>
   </div>
 
-  <!-- 3. Paquetes distribuidos -->
+  <!-- 3. Paquetes distribuidos por tipo -->
   <div class="section">
     <div class="section-header">
       <div class="step-num">3</div>
       <h3>Paquetes distribuidos</h3>
+      <span class="sh-sub">por tipo</span>
     </div>
     <div class="section-body">
-      <div class="contador">
-        <button onclick="cambiarPaq(-1)">−</button>
-        <div class="cnt" id="cnt-paq">35</div>
-        <button onclick="cambiarPaq(1)">+</button>
+      <div class="tipo-contadores">
+        <div class="tc-row">
+          <div class="tc-label"><span class="tp-cuota-dot">💳</span> Cuota completa<span class="tc-sub">$20 c/u</span></div>
+          <div class="tc-stepper">
+            <button onclick="cambiarCuota(-1)">−</button>
+            <div class="tc-val" id="cnt-cuota">30</div>
+            <button onclick="cambiarCuota(1)">+</button>
+          </div>
+        </div>
+        <div class="tc-row">
+          <div class="tc-label"><span class="tp-media-dot">🟡</span> Media cuota<span class="tc-sub">$10 c/u · casos abajo</span></div>
+          <div class="tc-stepper"><div class="tc-val" id="cnt-media">3</div></div>
+        </div>
+        <div class="tc-row">
+          <div class="tc-label"><span class="tp-donado-dot">🎁</span> Donado<span class="tc-sub">$0 · casos abajo</span></div>
+          <div class="tc-stepper"><div class="tc-val" id="cnt-donado">2</div></div>
+        </div>
       </div>
-      <div class="contador-sub" id="cnt-sub">de 35 planeados</div>
+      <div class="total-distribuido">
+        <span>Total distribuido</span>
+        <strong id="cnt-total">35</strong>
+      </div>
     </div>
   </div>
 
-  <!-- 4. Cuota de recuperación -->
+  <!-- 4. Casos especiales -->
   <div class="section">
     <div class="section-header">
       <div class="step-num">4</div>
-      <h3>Cuota de recuperación</h3>
+      <h3>Casos de ½ cuota y donado</h3>
+      <span class="sh-sub">con su sustento</span>
+    </div>
+    <div class="section-body" id="casos-body"></div>
+  </div>
+
+  <!-- 5. Paquetes devueltos -->
+  <div class="section">
+    <div class="section-header">
+      <div class="step-num">5</div>
+      <h3>Paquetes devueltos</h3>
+      <span class="sh-sub">vuelven a inventario</span>
     </div>
     <div class="section-body">
-      <div class="field">
-        <label>Monto recibido ($)</label>
-        <input type="number" id="f-cuota" min="0" step="10" value="700" oninput="updCuota()">
+      <div class="dev-sugerencia" id="dev-sugerencia" style="display:none">
+        <span id="dev-sugerencia-txt">—</span>
+        <button onclick="agregarDevSugerido()">Registrar</button>
       </div>
+      <div id="dev-rows"></div>
+      <button class="btn-agregar-dev" onclick="agregarDev()">＋ Agregar paquete devuelto</button>
+      <div class="dev-nota">Los devueltos se capturan con su causa y regresan como disponibles al inventario del almacén.</div>
+    </div>
+  </div>
+
+  <!-- 6. Cuota de recuperación -->
+  <div class="section">
+    <div class="section-header"><div class="step-num">6</div><h3>Cuota de recuperación</h3></div>
+    <div class="section-body">
+      <div class="field"><label>Monto recibido ($)</label><input type="number" id="f-cuota" min="0" step="10" oninput="updCuotaManual = true; updCuotaBox()"></div>
       <div class="cuota-box">
-        <span id="cuota-esperada">Esperado: $700 (35 × $20)</span>
+        <span id="cuota-esperada">—</span>
         <strong id="cuota-dif">✓ completo</strong>
       </div>
     </div>
   </div>
 
-  <!-- 5. Observaciones -->
+  <!-- 7. Observaciones -->
   <div class="section">
-    <div class="section-header">
-      <div class="step-num">5</div>
-      <h3>Observaciones</h3>
-    </div>
+    <div class="section-header"><div class="step-num">7</div><h3>Observaciones</h3></div>
     <div class="section-body">
-      <div class="field">
-        <textarea id="f-obs" placeholder="Ej. 3 familias no llegaron, se dejaron sus paquetes con la responsable…"></textarea>
-      </div>
+      <div class="field"><textarea id="f-obs" placeholder="Notas generales de la entrega…"></textarea></div>
     </div>
   </div>
 
   <button class="btn-primary" onclick="cerrarEntrega()">✅ Cerrar entrega</button>
 </div>
 
-<!-- OK -->
+<!-- OK comunidad -->
 <div id="pantalla-ok">
   <div class="ok-circle">🤝</div>
   <h2>¡Entrega registrada!</h2>
-  <p id="ok-sub">La entrega quedó guardada en el teléfono.</p>
+  <p id="ok-sub">La entrega quedó guardada.</p>
   <div class="sync-card" id="sync-card"></div>
   <div class="resumen-card" id="resumen"></div>
+  <button class="btn-ghost" onclick="toggleReporteDia('com')">📊 Ver reporte del día por comunidad</button>
+  <div class="reporte-dia" id="reporte-dia-com"></div>
   <button class="btn-ghost" onclick="location.reload()">Reiniciar demo</button>
+</div>
+
+</div>
+
+<!-- ══════════════ MODO INSTITUCIÓN ══════════════ -->
+<div id="modo-inst" style="display:none">
+
+<div class="header">
+  <div class="header-top"><span class="logo">🏢</span><span class="folio-badge">SAL-INST-01</span></div>
+  <h1>Entrega a institución</h1>
+  <p class="sub">Selecciona la institución de la ruta de hoy</p>
+</div>
+
+<div class="demo-note">🧪 Prototipo — mismo modo sin señal aplica aquí</div>
+
+<div id="captura-inst">
+  <div class="section">
+    <div class="section-header"><div class="step-num">1</div><h3>Institución</h3></div>
+    <div class="section-body">
+      <div class="field">
+        <label>Institución</label>
+        <select id="inst-select" onchange="cargarInstitucion()"></select>
+      </div>
+      <div class="info-grid" style="margin-top:6px">
+        <div class="info-item"><label>Beneficiarios</label><p id="inst-benef">—</p></div>
+        <div class="info-item"><label>Kg planeados</label><p id="inst-kgplan">—</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="step-num">2</div><h3>Tiempos</h3></div>
+    <div class="section-body">
+      <div class="row-2">
+        <div class="hora-group">
+          <div class="field"><label>Salida del banco</label><input type="time" id="fi-salida"></div>
+          <button class="btn-ahora" onclick="setHora('fi-salida')">Ahora</button>
+        </div>
+        <div class="hora-group">
+          <div class="field"><label>Llegada</label><input type="time" id="fi-llegada"></div>
+          <button class="btn-ahora" onclick="setHora('fi-llegada')">Ahora</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="step-num">3</div><h3>Entrega real</h3></div>
+    <div class="section-body">
+      <div class="row-2">
+        <div class="field"><label>Kg entregados</label><input type="number" id="fi-kg" min="0" oninput="updInstCuotaKg()"></div>
+        <div class="field"><label>Cuota recibida ($)</label><input type="number" id="fi-cuota" min="0" step="10" oninput="updInstCuotaKg()"></div>
+      </div>
+      <div class="cuota-box"><span>Cuota por kg entregado</span><strong id="fi-cuota-kg">$0.00</strong></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><div class="step-num">4</div><h3>Observaciones</h3></div>
+    <div class="section-body"><div class="field"><textarea id="fi-obs" placeholder="Notas de la entrega…"></textarea></div></div>
+  </div>
+
+  <button class="btn-primary" onclick="cerrarEntregaInst()">✅ Cerrar entrega a institución</button>
+</div>
+
+<div id="pantalla-ok-inst">
+  <div class="ok-circle">🏢</div>
+  <h2>¡Entrega a institución registrada!</h2>
+  <p>Quedó lista para el reporte de entregas a instituciones.</p>
+  <div class="resumen-card" id="resumen-inst"></div>
+  <button class="btn-ghost" onclick="toggleReporteDia('inst')">📋 Ver reporte de instituciones de hoy</button>
+  <div class="reporte-dia" id="reporte-dia-inst"></div>
+  <button class="btn-ghost" onclick="location.reload()">Reiniciar demo</button>
+</div>
+
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const PLAN = { paquetes: 35, cuota: 20 };
+// ═══════════ Estado de conexión (compartido) ═══════════
 let online = true;
-let paq = PLAN.paquetes;
-
 function toggleConn() {
   online = !online;
   const bar = document.getElementById('conn-bar');
@@ -372,7 +555,6 @@ function toggleConn() {
     txt.textContent = '📵 Sin señal — todo se guarda en el teléfono';
     btn.textContent = 'recuperar señal';
   }
-  // Si había una entrega pendiente de sincronizar y volvió la señal
   if (online && window._pendienteSync) {
     window._pendienteSync = false;
     const sc = document.getElementById('sync-card');
@@ -382,10 +564,137 @@ function toggleConn() {
   }
 }
 
+function switchModo(m) {
+  document.getElementById('tab-com').classList.toggle('active', m === 'com');
+  document.getElementById('tab-inst').classList.toggle('active', m === 'inst');
+  document.getElementById('modo-com').style.display = m === 'com' ? 'block' : 'none';
+  document.getElementById('modo-inst').style.display = m === 'inst' ? 'block' : 'none';
+}
+
 function setHora(id) {
   const now = new Date();
-  document.getElementById(id).value =
-    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  document.getElementById(id).value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+
+function showToast(msg, error=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (error ? ' error' : '');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => { t.className = 'toast'; }, 3400);
+}
+
+// ═══════════════════════════════════════════
+// MODO COMUNIDAD
+// ═══════════════════════════════════════════
+const PLAN = {
+  comunidad: 'Ejido La Esperanza',
+  responsable: 'Sr. José Martínez',
+  pesoPaquete: 10.2,
+  cuotaMonto: { cuota:20, media:10, donado:0 },
+  cuotaPlan: 30,
+};
+
+const CASOS = [
+  { nom:'Familia Villarreal Soto', tipo:'media',  sustento:'Estudio Socio-Nutricio: hacinamiento', recogio:true },
+  { nom:'Familia Osuna Palacios',  tipo:'media',  sustento:'Estudio Socio-Nutricio: ingreso variable (jornalero)', recogio:true },
+  { nom:'Familia Ibarra Nava',     tipo:'media',  sustento:'Estudio Socio-Nutricio: adulto mayor con enfermedad crónica', recogio:true },
+  { nom:'Familia Zapata Ríos',     tipo:'donado', sustento:'Criterio Trabajo Social: madre soltera sin ingreso', obs:'Lleva leche especial para lactante', recogio:true },
+  { nom:'Familia Soto Carrillo',   tipo:'donado', sustento:'Criterio Trabajo Social: discapacidad en el hogar', obs:'Silla de ruedas, requiere ayuda para cargar el paquete', recogio:true },
+];
+
+const CAUSAS = ['No llegó por su paquete', 'Rechazó el paquete', 'Familia se mudó de la comunidad', 'Otro motivo'];
+
+let cuotaEntregadas = PLAN.cuotaPlan;
+let devueltos = [];
+let updCuotaManual = false;
+
+const REPORTE_DIA_COM_PREVIO = [
+  { com:'Col. Fomerrey 45',   cuota:44, media:3, donado:1, extra:0, dinero:920 },
+  { com:'Col. Independencia', cuota:35, media:4, donado:2, extra:1, dinero:750 },
+];
+
+function cambiarCuota(d) {
+  cuotaEntregadas = Math.max(0, Math.min(PLAN.cuotaPlan, cuotaEntregadas + d));
+  document.getElementById('cnt-cuota').textContent = cuotaEntregadas;
+  actualizarTotales();
+  const faltan = PLAN.cuotaPlan - cuotaEntregadas;
+  const sug = document.getElementById('dev-sugerencia');
+  if (faltan > 0) {
+    sug.style.display = 'flex';
+    document.getElementById('dev-sugerencia-txt').textContent = `⚠️ ${faltan} paquete(s) de cuota completa no se distribuyeron. ¿Registrar como devueltos?`;
+  } else {
+    sug.style.display = 'none';
+  }
+}
+
+function renderCasos() {
+  document.getElementById('casos-body').innerHTML = CASOS.map((c, i) => `
+    <div class="caso-row">
+      <div class="caso-info">
+        <div class="caso-nom">${c.nom} <span class="tp-badge tp-${c.tipo}">${c.tipo === 'media' ? '🟡 ½ Cuota' : '🎁 Donado'}</span></div>
+        <div class="caso-sustento">📄 Sustento: ${c.sustento}</div>
+        ${c.obs ? `<div class="caso-obs">📌 ${c.obs}</div>` : ''}
+      </div>
+      <div class="mini-toggle">
+        <button class="mini-btn ${c.recogio ? 'si' : ''}" onclick="setCaso(${i}, true)">Sí</button>
+        <button class="mini-btn ${!c.recogio ? 'no' : ''}" onclick="setCaso(${i}, false)">No</button>
+      </div>
+    </div>
+  `).join('');
+  actualizarTotales();
+}
+
+function setCaso(i, val) {
+  CASOS[i].recogio = val;
+  renderCasos();
+  if (!val) showToast(`Registra el paquete de ${CASOS[i].nom} en "Paquetes devueltos"`);
+}
+
+function actualizarTotales() {
+  const media = CASOS.filter(c => c.tipo === 'media' && c.recogio).length;
+  const donado = CASOS.filter(c => c.tipo === 'donado' && c.recogio).length;
+  document.getElementById('cnt-media').textContent = media;
+  document.getElementById('cnt-donado').textContent = donado;
+  const total = cuotaEntregadas + media + donado;
+  document.getElementById('cnt-total').textContent = total;
+  if (!updCuotaManual) {
+    document.getElementById('f-cuota').value = cuotaEntregadas * PLAN.cuotaMonto.cuota + media * PLAN.cuotaMonto.media + donado * PLAN.cuotaMonto.donado;
+  }
+  updCuotaBox();
+}
+
+function updCuotaBox() {
+  const media = Number(document.getElementById('cnt-media').textContent);
+  const donado = Number(document.getElementById('cnt-donado').textContent);
+  const esperado = cuotaEntregadas * PLAN.cuotaMonto.cuota + media * PLAN.cuotaMonto.media + donado * PLAN.cuotaMonto.donado;
+  const recibido = Number(document.getElementById('f-cuota').value) || 0;
+  document.getElementById('cuota-esperada').textContent = `Esperado: $${esperado.toLocaleString()} (${cuotaEntregadas}×$20 + ${media}×$10 + ${donado}×$0)`;
+  const dif = document.getElementById('cuota-dif');
+  if (recibido >= esperado) { dif.textContent = '✓ completo'; dif.style.color = 'var(--accent)'; }
+  else { dif.textContent = `−$${(esperado - recibido).toLocaleString()}`; dif.style.color = 'var(--danger)'; }
+}
+
+function renderDev() {
+  document.getElementById('dev-rows').innerHTML = devueltos.map((d, i) => `
+    <div class="dev-row">
+      <select onchange="devueltos[${i}].causa = this.value">
+        ${CAUSAS.map(c => `<option ${c === d.causa ? 'selected' : ''}>${c}</option>`).join('')}
+      </select>
+      <input type="number" min="1" value="${d.cant}" oninput="devueltos[${i}].cant = Number(this.value)||1">
+      <button class="btn-quitar" onclick="quitarDev(${i})">✕</button>
+    </div>
+  `).join('') || '<div style="font-size:12px;color:var(--text2)">Sin devoluciones registradas.</div>';
+}
+
+function agregarDev() { devueltos.push({ causa: CAUSAS[0], cant: 1 }); renderDev(); }
+function quitarDev(i) { devueltos.splice(i, 1); renderDev(); }
+function agregarDevSugerido() {
+  const faltan = PLAN.cuotaPlan - cuotaEntregadas;
+  devueltos.push({ causa: CAUSAS[0], cant: faltan });
+  renderDev();
+  document.getElementById('dev-sugerencia').style.display = 'none';
+  showToast(`${faltan} paquete(s) registrados como devueltos ✓`);
 }
 
 function calcTraslado() {
@@ -401,80 +710,160 @@ function calcTraslado() {
   }
 }
 
-function cambiarPaq(d) {
-  paq = Math.max(0, paq + d);
-  document.getElementById('cnt-paq').textContent = paq;
-  const sub = document.getElementById('cnt-sub');
-  if (paq === PLAN.paquetes) {
-    sub.className = 'contador-sub';
-    sub.textContent = `de ${PLAN.paquetes} planeados`;
-  } else if (paq < PLAN.paquetes) {
-    sub.className = 'contador-sub alerta';
-    sub.textContent = `⚠️ ${PLAN.paquetes - paq} paquetes regresan al banco`;
-  } else {
-    sub.className = 'contador-sub alerta';
-    sub.textContent = `⚠️ ${paq - PLAN.paquetes} más de lo planeado`;
-  }
-  document.getElementById('f-cuota').value = paq * PLAN.cuota;
-  updCuota();
-}
-
-function updCuota() {
-  const esperado = paq * PLAN.cuota;
-  const recibido = Number(document.getElementById('f-cuota').value) || 0;
-  document.getElementById('cuota-esperada').textContent = `Esperado: $${esperado.toLocaleString()} (${paq} × $${PLAN.cuota})`;
-  const dif = document.getElementById('cuota-dif');
-  if (recibido >= esperado) dif.textContent = '✓ completo';
-  else dif.textContent = `−$${(esperado - recibido).toLocaleString()}`;
-}
+let cierreDelDia = null;
 
 function cerrarEntrega() {
   const salida = document.getElementById('f-salida').value;
   const llegada = document.getElementById('f-llegada').value;
   if (!salida || !llegada) { showToast('Registra salida y llegada', true); return; }
-  if (paq <= 0) { showToast('Registra los paquetes distribuidos', true); return; }
 
+  const media = Number(document.getElementById('cnt-media').textContent);
+  const donado = Number(document.getElementById('cnt-donado').textContent);
+  const total = cuotaEntregadas + media + donado;
   const cuota = Number(document.getElementById('f-cuota').value) || 0;
   const obs = document.getElementById('f-obs').value || 'Ninguna';
   const resp = document.getElementById('f-resp').value;
+  const totalDevueltos = devueltos.reduce((s,d) => s + d.cant, 0);
 
-  document.getElementById('captura').style.display = 'none';
-  document.querySelector('.demo-note').style.display = 'none';
+  cierreDelDia = { com: PLAN.comunidad, cuota: cuotaEntregadas, media, donado, extra: totalDevueltos, dinero: cuota };
+
+  document.getElementById('captura-com').style.display = 'none';
+  document.querySelectorAll('#modo-com .demo-note').forEach(n => n.style.display = 'none');
   document.getElementById('pantalla-ok').style.display = 'block';
 
   const sc = document.getElementById('sync-card');
   if (online) {
     sc.className = 'sync-card listo';
-    sc.innerHTML = '✅ <strong>Sincronizada:</strong> el banco ya tiene el registro. El panel de dirección se actualizó.';
+    sc.innerHTML = '✅ <strong>Sincronizada:</strong> el banco ya tiene el registro, incluyendo los paquetes devueltos que regresan a inventario. El panel de dirección se actualizó.';
     document.getElementById('ok-sub').textContent = 'La entrega se registró y sincronizó al instante.';
   } else {
     window._pendienteSync = true;
     sc.className = 'sync-card pendiente';
-    sc.innerHTML = '📵 <strong>Guardada en el teléfono:</strong> no hay señal en la comunidad. Se sincronizará sola en cuanto el teléfono recupere conexión — no tienes que hacer nada. <em>(Prueba tocar "recuperar señal" arriba.)</em>';
+    sc.innerHTML = '📵 <strong>Guardada en el teléfono:</strong> no hay señal en la comunidad. Se sincronizará sola en cuanto el teléfono recupere conexión. <em>(Prueba tocar "recuperar señal" arriba.)</em>';
     document.getElementById('ok-sub').textContent = 'La entrega quedó guardada localmente.';
   }
 
   document.getElementById('resumen').innerHTML = `
-    <div class="resumen-row"><span>Comunidad</span><span class="rr-val">Ejido La Esperanza</span></div>
+    <div class="resumen-row"><span>Comunidad</span><span class="rr-val">${PLAN.comunidad}</span></div>
     <div class="resumen-row"><span>Salida → llegada</span><span class="rr-val">${salida} → ${llegada}</span></div>
     <div class="resumen-row"><span>Recibió</span><span class="rr-val">${resp.split('(')[0].trim()}</span></div>
-    <div class="resumen-row"><span>Paquetes distribuidos</span><span class="rr-val">${paq} de ${PLAN.paquetes}</span></div>
-    <div class="resumen-row"><span>Kg entregados</span><span class="rr-val">${(paq * 10.2).toFixed(0)} kg</span></div>
-    <div class="resumen-row"><span>Cuota de recuperación</span><span class="rr-val">$${cuota.toLocaleString()}</span></div>
-    <div class="resumen-row"><span>Observaciones</span><span class="rr-val" style="max-width:55%;text-align:right">${obs}</span></div>
+    <div class="resumen-row"><span>💳 Cuota / 🟡 ½ / 🎁 Donado</span><span class="rr-val">${cuotaEntregadas} / ${media} / ${donado}</span></div>
+    <div class="resumen-row"><span>Total distribuido</span><span class="rr-val">${total} de ${PLAN.cuotaPlan + CASOS.length}</span></div>
+    <div class="resumen-row"><span>Kg entregados</span><span class="rr-val">${(total * PLAN.pesoPaquete).toFixed(0)} kg</span></div>
+    <div class="resumen-row"><span>Paquetes devueltos</span><span class="rr-val">${totalDevueltos || 'Ninguno'}</span></div>
+    <div class="resumen-row"><span>Cuota recuperada</span><span class="rr-val">$${cuota.toLocaleString()}</span></div>
+    <div class="resumen-row"><span>Observaciones</span><span class="rr-val" style="max-width:55%">${obs}</span></div>
   `;
   window.scrollTo(0, 0);
 }
 
-function showToast(msg, error=false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (error ? ' error' : '');
-  clearTimeout(window._tt);
-  window._tt = setTimeout(() => { t.className = 'toast'; }, 3200);
+function toggleReporteDia(modo) {
+  const panel = document.getElementById(modo === 'com' ? 'reporte-dia-com' : 'reporte-dia-inst');
+  if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
+
+  if (modo === 'com') {
+    const filas = [...REPORTE_DIA_COM_PREVIO];
+    if (cierreDelDia) filas.push(cierreDelDia);
+    const tot = filas.reduce((a,f) => ({
+      cuota:a.cuota+f.cuota, media:a.media+f.media, donado:a.donado+f.donado, extra:a.extra+f.extra, dinero:a.dinero+f.dinero
+    }), {cuota:0,media:0,donado:0,extra:0,dinero:0});
+    panel.innerHTML = `
+      <div class="rep-title">📊 Reporte del día · comunidades</div>
+      <table>
+        <thead><tr><th>Comunidad</th><th>💳</th><th>🟡</th><th>🎁</th><th>Devueltos</th><th>$</th></tr></thead>
+        <tbody>${filas.map(f => `<tr><td>${f.com}</td><td>${f.cuota}</td><td>${f.media}</td><td>${f.donado}</td><td>${f.extra}</td><td>$${f.dinero.toLocaleString()}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td>Total</td><td>${tot.cuota}</td><td>${tot.media}</td><td>${tot.donado}</td><td>${tot.extra}</td><td>$${tot.dinero.toLocaleString()}</td></tr></tfoot>
+      </table>`;
+  } else {
+    renderReporteInstituciones(panel);
+  }
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
+// ═══════════════════════════════════════════
+// MODO INSTITUCIÓN
+// ═══════════════════════════════════════════
+const INSTITUCIONES = [
+  { nombre:'Asilo Divina Providencia',   benef:34, kgPlan:88,  cuotaPlanEj:350 },
+  { nombre:'Comedor Infantil San José',  benef:60, kgPlan:112, cuotaPlanEj:500 },
+  { nombre:'Albergue Nueva Esperanza',   benef:22, kgPlan:45,  cuotaPlanEj:0 },
+];
+let instActiva = 0;
+const REPORTE_INST_PREVIO = [
+  { nombre:'Comedor Parroquial Santa Rosa', benef:48, kg:96, cuota:180 },
+];
+let cierreInstDia = null;
+
+function initInstSelect() {
+  document.getElementById('inst-select').innerHTML = INSTITUCIONES.map((i, idx) => `<option value="${idx}">${i.nombre}</option>`).join('');
+  cargarInstitucion();
+}
+
+function cargarInstitucion() {
+  instActiva = Number(document.getElementById('inst-select').value) || 0;
+  const ins = INSTITUCIONES[instActiva];
+  document.getElementById('inst-benef').textContent = ins.benef;
+  document.getElementById('inst-kgplan').textContent = ins.kgPlan + ' kg';
+  document.getElementById('fi-kg').value = ins.kgPlan;
+  document.getElementById('fi-cuota').value = ins.cuotaPlanEj;
+  updInstCuotaKg();
+}
+
+function updInstCuotaKg() {
+  const kg = Number(document.getElementById('fi-kg').value) || 0;
+  const cuota = Number(document.getElementById('fi-cuota').value) || 0;
+  document.getElementById('fi-cuota-kg').textContent = '$' + (kg > 0 ? (cuota/kg).toFixed(2) : '0.00');
+}
+
+function cerrarEntregaInst() {
+  const salida = document.getElementById('fi-salida').value;
+  const llegada = document.getElementById('fi-llegada').value;
+  if (!salida || !llegada) { showToast('Registra salida y llegada', true); return; }
+
+  const ins = INSTITUCIONES[instActiva];
+  const kg = Number(document.getElementById('fi-kg').value) || 0;
+  const cuota = Number(document.getElementById('fi-cuota').value) || 0;
+  const obs = document.getElementById('fi-obs').value || 'Ninguna';
+
+  cierreInstDia = { nombre: ins.nombre, benef: ins.benef, kg, cuota };
+
+  document.getElementById('captura-inst').style.display = 'none';
+  document.getElementById('pantalla-ok-inst').style.display = 'block';
+  document.getElementById('resumen-inst').innerHTML = `
+    <div class="resumen-row"><span>Institución</span><span class="rr-val">${ins.nombre}</span></div>
+    <div class="resumen-row"><span>Salida → llegada</span><span class="rr-val">${salida} → ${llegada}</span></div>
+    <div class="resumen-row"><span>Beneficiarios</span><span class="rr-val">${ins.benef}</span></div>
+    <div class="resumen-row"><span>Kg entregados</span><span class="rr-val">${kg} kg</span></div>
+    <div class="resumen-row"><span>Cuota recuperada</span><span class="rr-val">$${cuota.toLocaleString()}</span></div>
+    <div class="resumen-row"><span>Cuota por kg</span><span class="rr-val">$${kg > 0 ? (cuota/kg).toFixed(2) : '0.00'}</span></div>
+    <div class="resumen-row"><span>Observaciones</span><span class="rr-val" style="max-width:55%">${obs}</span></div>
+  `;
+  window.scrollTo(0, 0);
+  showToast(online ? 'Entrega sincronizada ✓' : 'Guardada en el teléfono, pendiente de señal');
+}
+
+function renderReporteInstituciones(panel) {
+  const filas = [...REPORTE_INST_PREVIO];
+  if (cierreInstDia) filas.push(cierreInstDia);
+  const tot = filas.reduce((a,f) => ({ benef:a.benef+f.benef, kg:a.kg+f.kg, cuota:a.cuota+f.cuota }), {benef:0,kg:0,cuota:0});
+  panel.innerHTML = `
+    <div class="rep-title">📋 Reporte del día · instituciones</div>
+    <table>
+      <thead><tr><th>Institución</th><th>Benef.</th><th>Kg</th><th>Cuota</th><th>$/kg</th></tr></thead>
+      <tbody>${filas.map(f => `<tr><td>${f.nombre}</td><td>${f.benef}</td><td>${f.kg}</td><td>$${f.cuota.toLocaleString()}</td><td>$${f.kg>0?(f.cuota/f.kg).toFixed(2):'0.00'}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td>Total</td><td>${tot.benef}</td><td>${tot.kg}</td><td>$${tot.cuota.toLocaleString()}</td><td>$${tot.kg>0?(tot.cuota/tot.kg).toFixed(2):'0.00'}</td></tr></tfoot>
+    </table>`;
+}
+
+// ── Init ──
 setHora('f-salida');
+document.getElementById('plan-total').textContent = PLAN.cuotaPlan + CASOS.length;
+document.getElementById('plan-desglose').textContent =
+  `💳 ${PLAN.cuotaPlan} · 🟡 ${CASOS.filter(c => c.tipo === 'media').length} · 🎁 ${CASOS.filter(c => c.tipo === 'donado').length}`;
+renderCasos();
+renderDev();
+initInstSelect();
 </script>
 </body>
 </html>

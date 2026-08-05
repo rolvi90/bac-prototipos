@@ -147,6 +147,24 @@
     </div>
   </div>
 
+  <h2 class="sec-title">🚚 Rescate por aliado</h2>
+  <div class="panel" style="padding:0">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Aliado</th>
+            <th>Tipo</th>
+            <th style="text-align:right">Piezas</th>
+            <th style="text-align:right">Kg</th>
+            <th style="text-align:right">% del total</th>
+          </tr>
+        </thead>
+        <tbody id="aliados-rows"></tbody>
+      </table>
+    </div>
+  </div>
+
   <h2 class="sec-title">🤝 Comunidades atendidas</h2>
   <div class="panel" style="padding:0">
     <div class="tbl-wrap">
@@ -163,6 +181,24 @@
           </tr>
         </thead>
         <tbody id="com-rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <h2 class="sec-title">🏢 Entregas a instituciones</h2>
+  <div class="panel" style="padding:0">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Institución</th>
+            <th style="text-align:right">Beneficiarios</th>
+            <th style="text-align:right">Kg</th>
+            <th style="text-align:right">Cuota ($)</th>
+            <th style="text-align:right">Cuota/kg</th>
+          </tr>
+        </thead>
+        <tbody id="inst-rows"></tbody>
       </table>
     </div>
   </div>
@@ -186,6 +222,17 @@ const DATA = {
       { c:'Col. Fomerrey 45',   r:'Sra. Carmen Ruiz',  fam:48, paq:48, kg:490, cuota:960,  ok:true },
       { c:'Ejido La Esperanza', r:'Sr. José Martínez', fam:35, paq:33, kg:340, cuota:660,  ok:false },
     ],
+    aliados: [
+      { n:'🏪 Soriana Centro',        tipo:'Aliado',  piezas:210, kg:245 },
+      { n:'🏬 HEB Valle',             tipo:'Aliado',  piezas:150, kg:140 },
+      { n:'🏪 Walmart Universidad',   tipo:'Aliado',  piezas:130, kg:160 },
+      { n:'🛒 Costco Cumbres',        tipo:'Aliado',  piezas:90,  kg:130 },
+      { n:'🍎 Mercado de Abastos',    tipo:'Aliado',  piezas:0,   kg:0 },
+      { n:'🎁 Red BAMX',              tipo:'Gestión', piezas:0,   kg:420 },
+    ],
+    instituciones: [
+      { n:'Asilo Divina Providencia', benef:34, kg:88, cuota:350 },
+    ],
   },
   sem: {
     lbl: 'Semana del 16 al 22 de julio',
@@ -203,6 +250,19 @@ const DATA = {
       { c:'Col. Independencia',  r:'Sra. Luz Elena G.', fam:45, paq:118, kg:1200, cuota:2360, ok:true },
       { c:'San Bernabé Sector 3',r:'Sra. Paty Flores',  fam:60, paq:97,  kg:990,  cuota:1940, ok:true },
       { c:'Ciénega de Flores',   r:'Sr. Raúl Cantú',    fam:33, paq:54,  kg:550,  cuota:1080, ok:false },
+    ],
+    aliados: [
+      { n:'🏪 Soriana Centro',        tipo:'Aliado',  piezas:980, kg:1150 },
+      { n:'🏬 HEB Valle',             tipo:'Aliado',  piezas:720, kg:680 },
+      { n:'🏪 Walmart Universidad',   tipo:'Aliado',  piezas:610, kg:750 },
+      { n:'🛒 Costco Cumbres',        tipo:'Aliado',  piezas:480, kg:690 },
+      { n:'🍎 Mercado de Abastos',    tipo:'Aliado',  piezas:340, kg:620 },
+      { n:'🎁 Red BAMX',              tipo:'Gestión', piezas:0,   kg:1240 },
+    ],
+    instituciones: [
+      { n:'Asilo Divina Providencia',  benef:34, kg:340, cuota:1350 },
+      { n:'Comedor Infantil San José', benef:60, kg:430, cuota:1900 },
+      { n:'Albergue Nueva Esperanza',  benef:22, kg:175, cuota:0 },
     ],
   },
   mes: {
@@ -224,6 +284,19 @@ const DATA = {
       { c:'Col. Valle Verde',    r:'Sra. Nora Sáenz',   fam:41, paq:120, kg:1220, cuota:2400, ok:true },
       { c:'El Carmen Norte',     r:'Sr. Hugo Leal',     fam:29, paq:80,  kg:820,  cuota:1600, ok:true },
       { c:'Villa Juárez',        r:'Sra. Delia Mora',   fam:35, paq:0,   kg:0,    cuota:0,    ok:false },
+    ],
+    aliados: [
+      { n:'🏪 Soriana Centro',        tipo:'Aliado',  piezas:3800, kg:4400 },
+      { n:'🏬 HEB Valle',             tipo:'Aliado',  piezas:2700, kg:2600 },
+      { n:'🏪 Walmart Universidad',   tipo:'Aliado',  piezas:2300, kg:2850 },
+      { n:'🛒 Costco Cumbres',        tipo:'Aliado',  piezas:1800, kg:2600 },
+      { n:'🍎 Mercado de Abastos',    tipo:'Aliado',  piezas:1200, kg:750 },
+      { n:'🎁 Red BAMX',              tipo:'Gestión', piezas:0,    kg:4800 },
+    ],
+    instituciones: [
+      { n:'Asilo Divina Providencia',  benef:34, kg:1360, cuota:5400 },
+      { n:'Comedor Infantil San José', benef:60, kg:1720, cuota:7600 },
+      { n:'Albergue Nueva Esperanza',  benef:22, kg:700,  cuota:0 },
     ],
   },
 };
@@ -290,6 +363,29 @@ function render() {
     <div class="bal-row total"><span class="bl"><strong>🧮 Inventario actual</strong></span><span class="bv">${b.inventario.toLocaleString()}</span></div>
     <div style="font-size:11px;color:var(--text2);margin-top:8px">Merma = ${(b.merma/(b.entradas||1)*100).toFixed(1)}% de las entradas · el semáforo ayuda a bajarla priorizando 🟡 en los repartos</div>
   `;
+
+  // Aliados de rescate
+  const totAliados = d.aliados.reduce((s,a) => s + a.kg, 0);
+  document.getElementById('aliados-rows').innerHTML = d.aliados.map(a => `
+    <tr>
+      <td style="font-weight:600">${a.n}</td>
+      <td style="color:var(--text2)">${a.tipo}</td>
+      <td class="num">${a.piezas ? a.piezas.toLocaleString() : '—'}</td>
+      <td class="num">${a.kg.toLocaleString()}</td>
+      <td class="num">${totAliados ? Math.round(a.kg/totAliados*100) : 0}%</td>
+    </tr>
+  `).join('');
+
+  // Instituciones
+  document.getElementById('inst-rows').innerHTML = d.instituciones.map(i => `
+    <tr>
+      <td style="font-weight:600">${i.n}</td>
+      <td class="num">${i.benef}</td>
+      <td class="num">${i.kg.toLocaleString()}</td>
+      <td class="num">$${i.cuota.toLocaleString()}</td>
+      <td class="num">$${i.kg > 0 ? (i.cuota/i.kg).toFixed(2) : '0.00'}</td>
+    </tr>
+  `).join('');
 
   // Comunidades
   document.getElementById('com-rows').innerHTML = d.comunidades.map(c => `

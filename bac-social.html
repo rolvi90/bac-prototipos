@@ -117,6 +117,50 @@
   .asist-btn.si { background: #dcfce7; border-color: #166534; color: #166534; }
   .asist-btn.no { background: #fee2e2; border-color: #991b1b; color: #991b1b; }
 
+  /* ── Tipo de paquete ── */
+  .tp-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: 10px; vertical-align: middle; white-space: nowrap;
+  }
+  .tp-cuota  { background: var(--accent-bg); color: var(--accent); }
+  .tp-media  { background: #fef3c7; color: #92600a; }
+  .tp-donado { background: #dbeafe; color: #1d4ed8; }
+  .b-sustento { font-size: 11px; color: var(--text2); margin-top: 3px; line-height: 1.4; }
+  .b-obs { font-size: 11px; color: var(--warn); margin-top: 3px; font-weight: 600; line-height: 1.4; }
+
+  .tipo-resumen {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 12px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .tr-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .tr-item strong { font-family: var(--display); font-size: 15px; }
+  .tr-dinero { margin-left: auto; color: var(--text2); }
+  .tr-dinero strong { color: var(--accent); }
+
+  .btn-secundario {
+    width: 100%; padding: 13px; margin-top: 10px;
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 12px; color: var(--text); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans);
+  }
+  .btn-secundario:active { background: var(--surface2); }
+
+  .reporte-panel {
+    margin-top: 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px;
+  }
+  .rep-title { font-family: var(--display); font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .zona-badge { font-size: 11px; font-weight: 600; background: var(--surface2); padding: 3px 10px; border-radius: 20px; }
+  .rep-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .rep-item label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; }
+  .rep-item p { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--accent); margin-top: 2px; }
+  .rep-item .rep-sub { font-family: var(--sans); font-size: 11px; color: var(--text2); font-weight: 400; }
+  .rep-sub-title { font-size: 12px; font-weight: 700; color: var(--text); margin: 14px 0 8px; text-transform: uppercase; letter-spacing: .4px; }
+  .rep-tipos { display: flex; gap: 8px; flex-wrap: wrap; }
+  .rep-lista { font-size: 13px; line-height: 1.8; color: var(--text2); }
+  .rep-lista strong { color: var(--text); }
+
   /* ── Envío ── */
   .btn-primary {
     width: 100%; padding: 16px;
@@ -205,6 +249,9 @@
     </div>
   </div>
 
+  <!-- Desglose por tipo de paquete -->
+  <div class="tipo-resumen" id="tipo-resumen"></div>
+
   <!-- Pase de lista -->
   <div class="panel">
     <div class="panel-head">
@@ -219,6 +266,9 @@
 
   <button class="btn-primary" onclick="enviarPlaneacion()">📤 Enviar demanda al nutriólogo</button>
   <div class="envio-ok" id="envio-ok"></div>
+
+  <button class="btn-secundario" onclick="toggleReporte()">📊 Generar reporte de la comunidad</button>
+  <div class="reporte-panel" id="reporte-panel" style="display:none"></div>
 </div>
 
 <!-- Modal de importación simulada -->
@@ -242,39 +292,48 @@
 <div class="toast" id="toast"></div>
 
 <script>
+const CUOTA_MONTO = { cuota:20, media:10, donado:0 };
+const ZONA = { 'Col. Fomerrey 45':'urbana', 'Ejido La Esperanza':'rural', 'Col. Independencia':'urbana' };
+
 const COMUNIDADES = {
   'Col. Fomerrey 45': [
-    { nom:'Familia García Torres',   int:5, tel:'81-1234-0001', asiste:true },
-    { nom:'Familia Hernández Ruiz',  int:3, tel:'81-1234-0002', asiste:true },
-    { nom:'Familia Morales Peña',    int:6, tel:'81-1234-0003', asiste:true },
-    { nom:'Familia Castillo Vega',   int:4, tel:'81-1234-0004', asiste:false },
-    { nom:'Familia Domínguez Lara',  int:2, tel:'81-1234-0005', asiste:true },
-    { nom:'Familia Salinas Ortiz',   int:7, tel:'81-1234-0006', asiste:true },
-    { nom:'Familia Reyes Campos',    int:4, tel:'81-1234-0007', asiste:true },
-    { nom:'Familia Aguilar Núñez',   int:3, tel:'81-1234-0008', asiste:false },
-    { nom:'Familia Torres Ibarra',   int:5, tel:'81-1234-0009', asiste:true },
-    { nom:'Familia Mendoza Cruz',    int:4, tel:'81-1234-0010', asiste:true },
+    { nom:'Familia García Torres',   int:5, tel:'81-1234-0001', asiste:true,  tipo:'cuota',  edades:{n:2,a:2,m:1} },
+    { nom:'Familia Hernández Ruiz',  int:3, tel:'81-1234-0002', asiste:true,  tipo:'cuota',  edades:{n:1,a:2,m:0} },
+    { nom:'Familia Morales Peña',    int:6, tel:'81-1234-0003', asiste:true,  tipo:'media',  sustento:'Estudio Socio-Nutricio: ingreso insuficiente', edades:{n:3,a:2,m:1} },
+    { nom:'Familia Castillo Vega',   int:4, tel:'81-1234-0004', asiste:false, tipo:'cuota',  edades:{n:2,a:2,m:0} },
+    { nom:'Familia Domínguez Lara',  int:2, tel:'81-1234-0005', asiste:true,  tipo:'donado', sustento:'Criterio Trabajo Social: adulto mayor solo', obs:'Dificultad para caminar, entregar con prioridad', edades:{n:0,a:0,m:2} },
+    { nom:'Familia Salinas Ortiz',   int:7, tel:'81-1234-0006', asiste:true,  tipo:'cuota',  edades:{n:4,a:3,m:0} },
+    { nom:'Familia Reyes Campos',    int:4, tel:'81-1234-0007', asiste:true,  tipo:'media',  sustento:'Estudio Socio-Nutricio: desempleo reciente', edades:{n:2,a:2,m:0} },
+    { nom:'Familia Aguilar Núñez',   int:3, tel:'81-1234-0008', asiste:false, tipo:'cuota',  edades:{n:1,a:2,m:0} },
+    { nom:'Familia Torres Ibarra',   int:5, tel:'81-1234-0009', asiste:true,  tipo:'cuota',  obs:'Requiere pañales para adulto mayor', edades:{n:1,a:2,m:2} },
+    { nom:'Familia Mendoza Cruz',    int:4, tel:'81-1234-0010', asiste:true,  tipo:'cuota',  edades:{n:2,a:2,m:0} },
   ],
   'Ejido La Esperanza': [
-    { nom:'Familia Cantú Ramírez',   int:4, tel:'81-5678-0001', asiste:true },
-    { nom:'Familia Villarreal Soto', int:6, tel:'81-5678-0002', asiste:true },
-    { nom:'Familia Guerra Luna',     int:3, tel:'81-5678-0003', asiste:true },
-    { nom:'Familia Treviño Mata',    int:5, tel:'81-5678-0004', asiste:false },
-    { nom:'Familia Zapata Ríos',     int:2, tel:'81-5678-0005', asiste:true },
-    { nom:'Familia Elizondo Páez',   int:4, tel:'81-5678-0006', asiste:true },
+    { nom:'Familia Cantú Ramírez',   int:4, tel:'81-5678-0001', asiste:true,  tipo:'cuota',  edades:{n:2,a:2,m:0} },
+    { nom:'Familia Villarreal Soto', int:6, tel:'81-5678-0002', asiste:true,  tipo:'media',  sustento:'Estudio Socio-Nutricio: hacinamiento', edades:{n:3,a:3,m:0} },
+    { nom:'Familia Guerra Luna',     int:3, tel:'81-5678-0003', asiste:true,  tipo:'cuota',  edades:{n:1,a:2,m:0} },
+    { nom:'Familia Treviño Mata',    int:5, tel:'81-5678-0004', asiste:false, tipo:'cuota',  edades:{n:2,a:3,m:0} },
+    { nom:'Familia Zapata Ríos',     int:2, tel:'81-5678-0005', asiste:true,  tipo:'donado', sustento:'Criterio Trabajo Social: madre soltera sin ingreso', obs:'Lleva leche especial para lactante', edades:{n:1,a:1,m:0} },
+    { nom:'Familia Elizondo Páez',   int:4, tel:'81-5678-0006', asiste:true,  tipo:'cuota',  edades:{n:2,a:2,m:0} },
   ],
   'Col. Independencia': [
-    { nom:'Familia Flores Ochoa',    int:5, tel:'81-9012-0001', asiste:true },
-    { nom:'Familia Rocha Medina',    int:3, tel:'81-9012-0002', asiste:true },
-    { nom:'Familia Cavazos Gil',     int:4, tel:'81-9012-0003', asiste:true },
-    { nom:'Familia Leal Bustos',     int:6, tel:'81-9012-0004', asiste:false },
-    { nom:'Familia Montes Serna',    int:2, tel:'81-9012-0005', asiste:true },
-    { nom:'Familia Padilla Vela',    int:5, tel:'81-9012-0006', asiste:true },
-    { nom:'Familia Quiroga Sada',    int:3, tel:'81-9012-0007', asiste:true },
+    { nom:'Familia Flores Ochoa',    int:5, tel:'81-9012-0001', asiste:true,  tipo:'cuota',  edades:{n:2,a:3,m:0} },
+    { nom:'Familia Rocha Medina',    int:3, tel:'81-9012-0002', asiste:true,  tipo:'cuota',  edades:{n:1,a:2,m:0} },
+    { nom:'Familia Cavazos Gil',     int:4, tel:'81-9012-0003', asiste:true,  tipo:'media',  sustento:'Estudio Socio-Nutricio: enfermedad crónica en el hogar', edades:{n:1,a:2,m:1} },
+    { nom:'Familia Leal Bustos',     int:6, tel:'81-9012-0004', asiste:false, tipo:'cuota',  edades:{n:3,a:3,m:0} },
+    { nom:'Familia Montes Serna',    int:2, tel:'81-9012-0005', asiste:true,  tipo:'cuota',  edades:{n:0,a:1,m:1} },
+    { nom:'Familia Padilla Vela',    int:5, tel:'81-9012-0006', asiste:true,  tipo:'donado', sustento:'Criterio Trabajo Social: desastre reciente (incendio)', obs:'Perdieron enseres del hogar, priorizar kit de higiene', edades:{n:2,a:2,m:1} },
+    { nom:'Familia Quiroga Sada',    int:3, tel:'81-9012-0007', asiste:true,  tipo:'cuota',  edades:{n:1,a:2,m:0} },
   ],
 };
 
 let comActiva = Object.keys(COMUNIDADES)[0];
+
+function tipoBadge(tipo) {
+  if (tipo === 'donado') return { txt:'🎁 Donado', cls:'tp-donado' };
+  if (tipo === 'media')  return { txt:'🟡 ½ Cuota', cls:'tp-media' };
+  return { txt:'💳 Cuota', cls:'tp-cuota' };
+}
 
 function renderComs() {
   document.getElementById('com-select').innerHTML = Object.keys(COMUNIDADES).map(c => `
@@ -286,6 +345,7 @@ function setCom(c) {
   comActiva = c;
   document.getElementById('buscar').value = '';
   document.getElementById('envio-ok').style.display = 'none';
+  document.getElementById('reporte-panel').style.display = 'none';
   renderComs();
   renderLista();
 }
@@ -297,29 +357,97 @@ function renderLista() {
   document.getElementById('lista-ben').innerHTML = lista
     .map((b, i) => ({ b, i }))
     .filter(({ b }) => b.nom.toLowerCase().includes(q))
-    .map(({ b, i }) => `
+    .map(({ b, i }) => {
+      const tb = tipoBadge(b.tipo);
+      return `
       <div class="ben-row">
         <div class="b-info">
-          <div class="b-name">${b.nom}</div>
+          <div class="b-name">${b.nom} <span class="tp-badge ${tb.cls}">${tb.txt}</span></div>
           <div class="b-sub">${b.int} integrantes · ${b.tel}</div>
+          ${b.sustento ? `<div class="b-sustento">📄 Sustento: ${b.sustento}</div>` : ''}
+          ${b.obs ? `<div class="b-obs">📌 ${b.obs}</div>` : ''}
         </div>
         <div class="asist-toggle">
           <button class="asist-btn ${b.asiste ? 'si' : ''}" onclick="setAsiste(${i}, true)">Sí va</button>
           <button class="asist-btn ${!b.asiste ? 'no' : ''}" onclick="setAsiste(${i}, false)">No</button>
         </div>
       </div>
-    `).join('') || '<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px">Sin resultados</div>';
+    `; }).join('') || '<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px">Sin resultados</div>';
 
   const total = lista.length;
   const si = lista.filter(b => b.asiste).length;
   document.getElementById('r-total').textContent = total;
   document.getElementById('r-si').textContent = si;
   document.getElementById('r-paq').textContent = si;
+
+  renderTipoResumen(lista);
+}
+
+function renderTipoResumen(lista) {
+  const asisten = lista.filter(b => b.asiste);
+  const porTipo = t => asisten.filter(b => b.tipo === t).length;
+  const cuota = porTipo('cuota'), media = porTipo('media'), donado = porTipo('donado');
+  const dinero = cuota * CUOTA_MONTO.cuota + media * CUOTA_MONTO.media + donado * CUOTA_MONTO.donado;
+  document.getElementById('tipo-resumen').innerHTML = `
+    <div class="tr-item"><span class="tp-badge tp-cuota">💳 Cuota</span><strong>${cuota}</strong></div>
+    <div class="tr-item"><span class="tp-badge tp-media">🟡 ½ Cuota</span><strong>${media}</strong></div>
+    <div class="tr-item"><span class="tp-badge tp-donado">🎁 Donado</span><strong>${donado}</strong></div>
+    <div class="tr-item tr-dinero">Cuotas esperadas <strong>$${dinero.toLocaleString()}</strong></div>
+  `;
 }
 
 function setAsiste(i, val) {
   COMUNIDADES[comActiva][i].asiste = val;
   renderLista();
+}
+
+function toggleReporte() {
+  const panel = document.getElementById('reporte-panel');
+  if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
+  renderReporte();
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function renderReporte() {
+  const lista = COMUNIDADES[comActiva];
+  const asisten = lista.filter(b => b.asiste);
+  const zona = ZONA[comActiva] || '—';
+  const edades = asisten.reduce((s,b) => ({
+    n: s.n + (b.edades?.n || 0), a: s.a + (b.edades?.a || 0), m: s.m + (b.edades?.m || 0)
+  }), { n:0, a:0, m:0 });
+  const totalPersonas = edades.n + edades.a + edades.m;
+  const porTipo = t => asisten.filter(b => b.tipo === t).length;
+  const conSustento = asisten.filter(b => b.tipo !== 'cuota');
+  const conObs = asisten.filter(b => b.obs);
+
+  document.getElementById('reporte-panel').innerHTML = `
+    <div class="rep-title">📊 Reporte · ${comActiva} <span class="zona-badge">${zona === 'rural' ? '🌾 Rural' : '🏙️ Urbana'}</span></div>
+    <div class="rep-grid">
+      <div class="rep-item"><label>Familias beneficiadas</label><p>${asisten.length} <span class="rep-sub">(1 paquete c/u)</span></p></div>
+      <div class="rep-item"><label>Beneficiarios totales</label><p>${totalPersonas}</p></div>
+      <div class="rep-item"><label>Niños y adolescentes</label><p>${edades.n}</p></div>
+      <div class="rep-item"><label>Adultos</label><p>${edades.a}</p></div>
+      <div class="rep-item"><label>Adultos mayores</label><p>${edades.m}</p></div>
+      <div class="rep-item"><label>Zona</label><p>${zona === 'rural' ? 'Rural' : 'Urbana'}</p></div>
+    </div>
+    <div class="rep-sub-title">Por tipo de paquete</div>
+    <div class="rep-tipos">
+      <span class="tp-badge tp-cuota">💳 Cuota: ${porTipo('cuota')}</span>
+      <span class="tp-badge tp-media">🟡 ½ Cuota: ${porTipo('media')}</span>
+      <span class="tp-badge tp-donado">🎁 Donado: ${porTipo('donado')}</span>
+    </div>
+    ${conSustento.length ? `
+    <div class="rep-sub-title">Sustento de casos donados / ½ cuota</div>
+    <div class="rep-lista">
+      ${conSustento.map(b => `<div>• <strong>${b.nom}</strong> — ${b.sustento || 'sin sustento capturado'}</div>`).join('')}
+    </div>` : ''}
+    ${conObs.length ? `
+    <div class="rep-sub-title">⚠️ Beneficiarios con atención especial</div>
+    <div class="rep-lista">
+      ${conObs.map(b => `<div>• <strong>${b.nom}</strong> — ${b.obs}</div>`).join('')}
+    </div>` : ''}
+  `;
 }
 
 function enviarPlaneacion() {
@@ -343,12 +471,12 @@ function simularImport() {
 
   setTimeout(() => {
     const nuevos = [
-      { nom:'Familia Bravo Estrada',  int:4, tel:'81-5678-0007', asiste:true },
-      { nom:'Familia Nava Cordero',   int:3, tel:'81-5678-0008', asiste:true },
-      { nom:'Familia Osuna Palacios', int:5, tel:'81-5678-0009', asiste:true },
-      { nom:'Familia Ponce Duarte',   int:2, tel:'81-5678-0010', asiste:true },
-      { nom:'Familia Ríos Balderas',  int:6, tel:'81-5678-0011', asiste:true },
-      { nom:'Familia Soto Carrillo',  int:4, tel:'81-5678-0012', asiste:true },
+      { nom:'Familia Bravo Estrada',  int:4, tel:'81-5678-0007', asiste:true, tipo:'cuota', edades:{n:2,a:2,m:0} },
+      { nom:'Familia Nava Cordero',   int:3, tel:'81-5678-0008', asiste:true, tipo:'cuota', edades:{n:1,a:2,m:0} },
+      { nom:'Familia Osuna Palacios', int:5, tel:'81-5678-0009', asiste:true, tipo:'media', sustento:'Estudio Socio-Nutricio: ingreso variable (jornalero)', edades:{n:2,a:2,m:1} },
+      { nom:'Familia Ponce Duarte',   int:2, tel:'81-5678-0010', asiste:true, tipo:'cuota', edades:{n:0,a:2,m:0} },
+      { nom:'Familia Ríos Balderas',  int:6, tel:'81-5678-0011', asiste:true, tipo:'cuota', edades:{n:3,a:3,m:0} },
+      { nom:'Familia Soto Carrillo',  int:4, tel:'81-5678-0012', asiste:true, tipo:'donado', sustento:'Criterio Trabajo Social: discapacidad en el hogar', obs:'Silla de ruedas, requiere ayuda para cargar el paquete', edades:{n:1,a:2,m:1} },
     ];
     COMUNIDADES['Ejido La Esperanza'].push(...nuevos);
     comActiva = 'Ejido La Esperanza';

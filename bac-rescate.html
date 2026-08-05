@@ -150,6 +150,15 @@
   .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
   .kg-lbl { font-size: 11px; color: var(--text2); width: 18px; }
 
+  .btn-sindon {
+    width: 100%; margin-top: 12px; padding: 12px;
+    background: transparent; border: 1.5px dashed #d6a5a5;
+    border-radius: 10px; color: var(--danger); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans);
+  }
+  .btn-sindon:active { background: #fee2e2; }
+  .st-sindon { background: #fee2e2; color: var(--danger); }
+
   .total-bar {
     background: var(--accent-bg); border-radius: 10px;
     padding: 12px 14px; margin-top: 12px;
@@ -270,6 +279,7 @@
         <span>Total de esta parada</span>
         <strong><span id="d-total">0</span> kg</strong>
       </div>
+      <button class="btn-sindon" onclick="sinDonacion()">🚫 Hoy no hubo donación en esta tienda</button>
     </div>
   </div>
 
@@ -319,6 +329,8 @@ const GRUPOS = [
   { id:'pan',  icon:'🍞', name:'Panadería y tortilla' },
   { id:'aba',  icon:'🥫', name:'Abarrotes' },
   { id:'nc',   icon:'🧴', name:'No comestible (higiene)' },
+  { id:'hog',  icon:'🏠', name:'Hogar (artículos)' },
+  { id:'ves',  icon:'👕', name:'Vestimenta (ropa)' },
 ];
 
 const PARADAS = [
@@ -335,11 +347,11 @@ function renderLista() {
   const el = document.getElementById('lista-paradas');
   el.innerHTML = PARADAS.map(p => {
     const kg = totalKg(p.kg);
-    const stClass = p.estado === 'done' ? 'st-done' : (p.estado === 'activo' ? 'st-activo' : 'st-pend');
-    const stTxt   = p.estado === 'done' ? `✓ ${kg} kg` : (p.estado === 'activo' ? 'En sitio' : 'Pendiente');
+    const stClass = p.sinDonacion ? 'st-sindon' : (p.estado === 'done' ? 'st-done' : (p.estado === 'activo' ? 'st-activo' : 'st-pend'));
+    const stTxt   = p.sinDonacion ? '🚫 Sin donación' : (p.estado === 'done' ? `✓ ${kg} kg` : (p.estado === 'activo' ? 'En sitio' : 'Pendiente'));
     return `
     <div class="parada ${p.estado === 'done' ? 'done' : ''} ${p.estado === 'activo' ? 'active' : ''}" onclick="abrirParada(${p.id})">
-      <div class="p-icon">${p.estado === 'done' ? '✅' : p.icon}</div>
+      <div class="p-icon">${p.sinDonacion ? '🚫' : (p.estado === 'done' ? '✅' : p.icon)}</div>
       <div class="p-info">
         <div class="p-name">${p.nombre}</div>
         <div class="p-sub">${p.dir}</div>
@@ -432,11 +444,24 @@ function cerrarParada() {
   guardarCampos();
   const p = paradaActiva;
   if (!p.llegada) { showToast('Registra la hora de llegada', true); return; }
-  if (totalKg(p.kg) <= 0) { showToast('Captura los kg de al menos un grupo', true); return; }
+  if (totalKg(p.kg) <= 0) { showToast('Captura los kg, o marca "no hubo donación"', true); return; }
   if (!p.salida) { setHora('f-salida'); p.salida = document.getElementById('f-salida').value; }
 
   p.estado = 'done';
+  p.sinDonacion = false;
   showToast(`${p.nombre}: ${totalKg(p.kg)} kg registrados ✓`);
+  volverALista();
+}
+
+function sinDonacion() {
+  guardarCampos();
+  const p = paradaActiva;
+  if (!p.llegada) { setHora('f-llegada'); p.llegada = document.getElementById('f-llegada').value; }
+  if (!p.salida)  { setHora('f-salida');  p.salida  = document.getElementById('f-salida').value; }
+  GRUPOS.forEach(g => p.kg[g.id] = 0);
+  p.sinDonacion = true;
+  p.estado = 'done';
+  showToast(`${p.nombre}: registrada sin donación`);
   volverALista();
 }
 
@@ -453,8 +478,8 @@ function mostrarFin() {
   document.getElementById('resumen-rows').innerHTML =
     PARADAS.map(p => `
       <div class="resumen-row">
-        <span>${p.icon} ${p.nombre} <span style="color:var(--text2);font-size:11px">(${p.llegada}–${p.salida})</span></span>
-        <span class="rr-val">${totalKg(p.kg)} kg</span>
+        <span>${p.sinDonacion ? '🚫' : p.icon} ${p.nombre} <span style="color:var(--text2);font-size:11px">(${p.llegada}–${p.salida})</span></span>
+        <span class="rr-val">${p.sinDonacion ? 'Sin donación' : totalKg(p.kg) + ' kg'}</span>
       </div>`).join('') +
     `<div class="resumen-row" style="margin-top:6px">
       <span><strong>Total del día</strong></span>
