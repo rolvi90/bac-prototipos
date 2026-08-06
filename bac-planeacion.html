@@ -150,6 +150,18 @@
   }
   .kg-paquete strong { color: var(--text); }
 
+  .extra-box { margin-top: 14px; border-radius: 12px; padding: 14px 16px; background: #fef3c7; }
+  .extra-head { font-size: 13px; font-weight: 700; color: #92600a; margin-bottom: 10px; }
+  .extra-head .ph-sub { font-weight: 400; font-size: 11px; color: #92600a; opacity: .8; }
+  .extra-fields { display: grid; grid-template-columns: 1fr 130px; gap: 10px; }
+  .extra-fields .field { margin-bottom: 0; }
+  .extra-fields label { font-size: 10px; color: #92600a; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .4px; }
+  .extra-fields input {
+    width: 100%; padding: 9px 12px; background: var(--surface); border: 1px solid #fde68a;
+    border-radius: 8px; font-size: 13px; font-family: var(--sans); color: var(--text); outline: none;
+  }
+  .extra-fields input:focus { border-color: var(--warn); }
+
   .btn-primary {
     width: 100%; margin-top: 14px; padding: 15px;
     background: var(--accent); border: none; border-radius: 12px;
@@ -256,7 +268,7 @@
 <div class="topbar">
   <span class="logo">🥗</span>
   <h1>BAC · Planeación de paquetes</h1>
-  <span class="user">Nutrióloga: Ana Treviño</span>
+  <span class="user">Encargado de paquetes: Ana Treviño</span>
 </div>
 
 <div class="nav">
@@ -314,6 +326,20 @@
               <strong id="calc-alcanzan">—</strong>
             </div>
             <div class="calc-detail" id="calc-detalle">—</div>
+          </div>
+
+          <div class="extra-box">
+            <div class="extra-head">🎁 Extra de esta comunidad <span class="ph-sub">opcional — se entrega además del paquete base</span></div>
+            <div class="extra-fields">
+              <div class="field">
+                <label>Contenido del extra</label>
+                <input type="text" id="extra-contenido" placeholder="Ej. Lácteos, jugo, cereal…" oninput="DEMANDA[dia][comunidadEditando].extra.contenido = this.value">
+              </div>
+              <div class="field">
+                <label>Costo por extra ($)</label>
+                <input type="number" id="extra-costo" min="0" step="5" oninput="DEMANDA[dia][comunidadEditando].extra.costo = Number(this.value)||0">
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -426,13 +452,13 @@ function comp(overrides) { return DISPONIBLE.map((p,i) => overrides[i] !== undef
 // Demanda confirmada por trabajo social (pase de lista del día)
 const DEMANDA = {
   hoy: [
-    { com:'Col. Fomerrey 45',    resp:'Sra. Carmen Ruiz',  fam:52, paq:48, sel:true,  comp:comp({5:1,   6:0}) },
-    { com:'Ejido La Esperanza',  resp:'Sr. José Martínez', fam:38, paq:35, sel:true,  comp:comp({5:0.5, 6:1}) },
-    { com:'Col. Independencia',  resp:'Sra. Luz Elena G.', fam:45, paq:41, sel:false, comp:comp({5:0.5, 6:1}) },
+    { com:'Col. Fomerrey 45',    resp:'Sra. Carmen Ruiz',  fam:52, paq:48, sel:true,  comp:comp({5:1,   6:0}), extra:{ contenido:'Pañales y toallas húmedas', costo:20 } },
+    { com:'Ejido La Esperanza',  resp:'Sr. José Martínez', fam:38, paq:35, sel:true,  comp:comp({5:0.5, 6:1}), extra:{ contenido:'Leche, cereal y jugo', costo:15 } },
+    { com:'Col. Independencia',  resp:'Sra. Luz Elena G.', fam:45, paq:41, sel:false, comp:comp({5:0.5, 6:1}), extra:{ contenido:'Café y galletas', costo:10 } },
   ],
   man: [
-    { com:'San Bernabé Sector 3', resp:'Sra. Paty Flores',  fam:60, paq:55, sel:true, comp:comp({5:1, 6:0}) },
-    { com:'Ciénega de Flores',    resp:'Sr. Raúl Cantú',    fam:33, paq:30, sel:true, comp:comp({5:1, 6:1}) },
+    { com:'San Bernabé Sector 3', resp:'Sra. Paty Flores',  fam:60, paq:55, sel:true, comp:comp({5:1, 6:0}), extra:{ contenido:'Aceite y detergente', costo:20 } },
+    { com:'Ciénega de Flores',    resp:'Sr. Raúl Cantú',    fam:33, paq:30, sel:true, comp:comp({5:1, 6:1}), extra:{ contenido:'Fruta de temporada', costo:10 } },
   ],
 };
 
@@ -496,6 +522,8 @@ function editarComunidad(i) {
 function renderComp() {
   const d = DEMANDA[dia][comunidadEditando];
   document.getElementById('comp-titulo').textContent = d.com;
+  document.getElementById('extra-contenido').value = d.extra.contenido;
+  document.getElementById('extra-costo').value = d.extra.costo;
 
   document.getElementById('comp-rows').innerHTML = DISPONIBLE.map((p, i) => `
     <div class="comp-row">
@@ -581,9 +609,11 @@ function generarOrden() {
   document.getElementById('or-lista').innerHTML = seleccionadas.map(d => {
     const contenido = DISPONIBLE.map((p,i) => d.comp[i] > 0 ? `${p.prod} <strong>${d.comp[i]} kg</strong>` : null).filter(Boolean).join(' · ');
     const kgPaq = d.comp.reduce((a,b) => a+b, 0);
+    const extraTxt = d.extra && d.extra.contenido ? `🎁 Extra: ${d.extra.contenido} — $${d.extra.costo} c/u` : '';
     return `<div class="orden-com-block">
       🤝 <strong>${d.com}</strong> — ${d.paq} paquetes de ${kgPaq.toFixed(1)} kg · recibe ${d.resp}
       <div class="ocb-cont">📦 ${contenido}</div>
+      ${extraTxt ? `<div class="ocb-cont">${extraTxt}</div>` : ''}
     </div>`;
   }).join('') + `<div style="margin-top:10px;color:var(--ok);font-size:13px">✅ Cada comunidad enviada al módulo de <strong>Entregas</strong> con su propia composición — el chofer ya la ve en su app.</div>`;
 

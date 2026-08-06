@@ -148,6 +148,8 @@
   .tp-cuota-dot  { color: var(--accent); }
   .tp-media-dot  { color: var(--warn); }
   .tp-donado-dot { color: #1d4ed8; }
+  .tp-extra-dot  { color: #7c3aed; }
+  .tc-row.tc-extra { background: #f3ebff; }
 
   .total-distribuido {
     margin-top: 12px; background: var(--accent-bg); border-radius: 10px; padding: 12px 14px;
@@ -390,6 +392,14 @@
           <div class="tc-label"><span class="tp-donado-dot">🎁</span> Donado<span class="tc-sub">$0 · casos abajo</span></div>
           <div class="tc-stepper"><div class="tc-val" id="cnt-donado">2</div></div>
         </div>
+        <div class="tc-row tc-extra">
+          <div class="tc-label"><span class="tp-extra-dot">➕</span> Extra<span class="tc-sub" id="extra-sub">—</span></div>
+          <div class="tc-stepper">
+            <button onclick="cambiarExtra(-1)">−</button>
+            <div class="tc-val" id="cnt-extra">0</div>
+            <button onclick="cambiarExtra(1)">+</button>
+          </div>
+        </div>
       </div>
       <div class="total-distribuido">
         <span>Total distribuido</span>
@@ -593,6 +603,7 @@ const PLAN = {
   pesoPaquete: 10.2,
   cuotaMonto: { cuota:20, media:10, donado:0 },
   cuotaPlan: 30,
+  extra: { contenido: 'Leche, cereal y jugo', costo: 15 },
 };
 
 const CASOS = [
@@ -606,12 +617,13 @@ const CASOS = [
 const CAUSAS = ['No llegó por su paquete', 'Rechazó el paquete', 'Familia se mudó de la comunidad', 'Otro motivo'];
 
 let cuotaEntregadas = PLAN.cuotaPlan;
+let extraEntregados = 0;
 let devueltos = [];
 let updCuotaManual = false;
 
 const REPORTE_DIA_COM_PREVIO = [
-  { com:'Col. Fomerrey 45',   cuota:44, media:3, donado:1, extra:0, dinero:920 },
-  { com:'Col. Independencia', cuota:35, media:4, donado:2, extra:1, dinero:750 },
+  { com:'Col. Fomerrey 45',   cuota:44, media:3, donado:1, extraCant:2, devueltos:0, dinero:950 },
+  { com:'Col. Independencia', cuota:35, media:4, donado:2, extraCant:0, devueltos:1, dinero:750 },
 ];
 
 function cambiarCuota(d) {
@@ -626,6 +638,12 @@ function cambiarCuota(d) {
   } else {
     sug.style.display = 'none';
   }
+}
+
+function cambiarExtra(d) {
+  extraEntregados = Math.max(0, extraEntregados + d);
+  document.getElementById('cnt-extra').textContent = extraEntregados;
+  actualizarTotales();
 }
 
 function renderCasos() {
@@ -656,10 +674,11 @@ function actualizarTotales() {
   const donado = CASOS.filter(c => c.tipo === 'donado' && c.recogio).length;
   document.getElementById('cnt-media').textContent = media;
   document.getElementById('cnt-donado').textContent = donado;
-  const total = cuotaEntregadas + media + donado;
+  const total = cuotaEntregadas + media + donado + extraEntregados;
   document.getElementById('cnt-total').textContent = total;
   if (!updCuotaManual) {
-    document.getElementById('f-cuota').value = cuotaEntregadas * PLAN.cuotaMonto.cuota + media * PLAN.cuotaMonto.media + donado * PLAN.cuotaMonto.donado;
+    document.getElementById('f-cuota').value =
+      cuotaEntregadas * PLAN.cuotaMonto.cuota + media * PLAN.cuotaMonto.media + donado * PLAN.cuotaMonto.donado + extraEntregados * PLAN.extra.costo;
   }
   updCuotaBox();
 }
@@ -667,9 +686,10 @@ function actualizarTotales() {
 function updCuotaBox() {
   const media = Number(document.getElementById('cnt-media').textContent);
   const donado = Number(document.getElementById('cnt-donado').textContent);
-  const esperado = cuotaEntregadas * PLAN.cuotaMonto.cuota + media * PLAN.cuotaMonto.media + donado * PLAN.cuotaMonto.donado;
+  const esperado = cuotaEntregadas * PLAN.cuotaMonto.cuota + media * PLAN.cuotaMonto.media + donado * PLAN.cuotaMonto.donado + extraEntregados * PLAN.extra.costo;
   const recibido = Number(document.getElementById('f-cuota').value) || 0;
-  document.getElementById('cuota-esperada').textContent = `Esperado: $${esperado.toLocaleString()} (${cuotaEntregadas}×$20 + ${media}×$10 + ${donado}×$0)`;
+  document.getElementById('cuota-esperada').textContent =
+    `Esperado: $${esperado.toLocaleString()} (${cuotaEntregadas}×$20 + ${media}×$10 + ${donado}×$0 + ${extraEntregados}×$${PLAN.extra.costo})`;
   const dif = document.getElementById('cuota-dif');
   if (recibido >= esperado) { dif.textContent = '✓ completo'; dif.style.color = 'var(--accent)'; }
   else { dif.textContent = `−$${(esperado - recibido).toLocaleString()}`; dif.style.color = 'var(--danger)'; }
@@ -719,13 +739,13 @@ function cerrarEntrega() {
 
   const media = Number(document.getElementById('cnt-media').textContent);
   const donado = Number(document.getElementById('cnt-donado').textContent);
-  const total = cuotaEntregadas + media + donado;
+  const totalBase = cuotaEntregadas + media + donado;
   const cuota = Number(document.getElementById('f-cuota').value) || 0;
   const obs = document.getElementById('f-obs').value || 'Ninguna';
   const resp = document.getElementById('f-resp').value;
   const totalDevueltos = devueltos.reduce((s,d) => s + d.cant, 0);
 
-  cierreDelDia = { com: PLAN.comunidad, cuota: cuotaEntregadas, media, donado, extra: totalDevueltos, dinero: cuota };
+  cierreDelDia = { com: PLAN.comunidad, cuota: cuotaEntregadas, media, donado, extraCant: extraEntregados, devueltos: totalDevueltos, dinero: cuota };
 
   document.getElementById('captura-com').style.display = 'none';
   document.querySelectorAll('#modo-com .demo-note').forEach(n => n.style.display = 'none');
@@ -748,8 +768,9 @@ function cerrarEntrega() {
     <div class="resumen-row"><span>Salida → llegada</span><span class="rr-val">${salida} → ${llegada}</span></div>
     <div class="resumen-row"><span>Recibió</span><span class="rr-val">${resp.split('(')[0].trim()}</span></div>
     <div class="resumen-row"><span>💳 Cuota / 🟡 ½ / 🎁 Donado</span><span class="rr-val">${cuotaEntregadas} / ${media} / ${donado}</span></div>
-    <div class="resumen-row"><span>Total distribuido</span><span class="rr-val">${total} de ${PLAN.cuotaPlan + CASOS.length}</span></div>
-    <div class="resumen-row"><span>Kg entregados</span><span class="rr-val">${(total * PLAN.pesoPaquete).toFixed(0)} kg</span></div>
+    <div class="resumen-row"><span>Total distribuido</span><span class="rr-val">${totalBase} de ${PLAN.cuotaPlan + CASOS.length}</span></div>
+    <div class="resumen-row"><span>Kg entregados</span><span class="rr-val">${(totalBase * PLAN.pesoPaquete).toFixed(0)} kg</span></div>
+    <div class="resumen-row"><span>➕ Extra (${PLAN.extra.contenido})</span><span class="rr-val">${extraEntregados} × $${PLAN.extra.costo}</span></div>
     <div class="resumen-row"><span>Paquetes devueltos</span><span class="rr-val">${totalDevueltos || 'Ninguno'}</span></div>
     <div class="resumen-row"><span>Cuota recuperada</span><span class="rr-val">$${cuota.toLocaleString()}</span></div>
     <div class="resumen-row"><span>Observaciones</span><span class="rr-val" style="max-width:55%">${obs}</span></div>
@@ -765,14 +786,15 @@ function toggleReporteDia(modo) {
     const filas = [...REPORTE_DIA_COM_PREVIO];
     if (cierreDelDia) filas.push(cierreDelDia);
     const tot = filas.reduce((a,f) => ({
-      cuota:a.cuota+f.cuota, media:a.media+f.media, donado:a.donado+f.donado, extra:a.extra+f.extra, dinero:a.dinero+f.dinero
-    }), {cuota:0,media:0,donado:0,extra:0,dinero:0});
+      cuota:a.cuota+f.cuota, media:a.media+f.media, donado:a.donado+f.donado,
+      extraCant:a.extraCant+f.extraCant, devueltos:a.devueltos+f.devueltos, dinero:a.dinero+f.dinero
+    }), {cuota:0,media:0,donado:0,extraCant:0,devueltos:0,dinero:0});
     panel.innerHTML = `
       <div class="rep-title">📊 Reporte del día · comunidades</div>
       <table>
-        <thead><tr><th>Comunidad</th><th>💳</th><th>🟡</th><th>🎁</th><th>Devueltos</th><th>$</th></tr></thead>
-        <tbody>${filas.map(f => `<tr><td>${f.com}</td><td>${f.cuota}</td><td>${f.media}</td><td>${f.donado}</td><td>${f.extra}</td><td>$${f.dinero.toLocaleString()}</td></tr>`).join('')}</tbody>
-        <tfoot><tr><td>Total</td><td>${tot.cuota}</td><td>${tot.media}</td><td>${tot.donado}</td><td>${tot.extra}</td><td>$${tot.dinero.toLocaleString()}</td></tr></tfoot>
+        <thead><tr><th>Comunidad</th><th>💳</th><th>🟡</th><th>🎁</th><th>➕</th><th>Devueltos</th><th>$</th></tr></thead>
+        <tbody>${filas.map(f => `<tr><td>${f.com}</td><td>${f.cuota}</td><td>${f.media}</td><td>${f.donado}</td><td>${f.extraCant}</td><td>${f.devueltos}</td><td>$${f.dinero.toLocaleString()}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td>Total</td><td>${tot.cuota}</td><td>${tot.media}</td><td>${tot.donado}</td><td>${tot.extraCant}</td><td>${tot.devueltos}</td><td>$${tot.dinero.toLocaleString()}</td></tr></tfoot>
       </table>`;
   } else {
     renderReporteInstituciones(panel);
@@ -861,6 +883,7 @@ setHora('f-salida');
 document.getElementById('plan-total').textContent = PLAN.cuotaPlan + CASOS.length;
 document.getElementById('plan-desglose').textContent =
   `💳 ${PLAN.cuotaPlan} · 🟡 ${CASOS.filter(c => c.tipo === 'media').length} · 🎁 ${CASOS.filter(c => c.tipo === 'donado').length}`;
+document.getElementById('extra-sub').textContent = `$${PLAN.extra.costo} c/u · ${PLAN.extra.contenido}`;
 renderCasos();
 renderDev();
 initInstSelect();

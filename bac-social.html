@@ -101,14 +101,23 @@
   .search-box input:focus { border-color: var(--accent); }
 
   .ben-row {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; flex-direction: column; gap: 8px;
     padding: 12px 16px; border-bottom: 1px solid var(--border);
   }
   .ben-row:last-child { border-bottom: none; }
+  .ben-top { display: flex; align-items: center; gap: 12px; }
   .ben-row .b-info { flex: 1; min-width: 0; }
   .ben-row .b-name { font-size: 14px; font-weight: 500; }
   .ben-row .b-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
-  .asist-toggle { display: flex; gap: 4px; }
+  .asist-toggle { display: flex; gap: 4px; flex-shrink: 0; }
+  .obs-input {
+    width: 100%; padding: 8px 12px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 12px; font-family: var(--sans); color: var(--text);
+    outline: none;
+  }
+  .obs-input:focus { border-color: var(--accent); }
+  .obs-input::placeholder { color: var(--text2); }
   .asist-btn {
     padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
     cursor: pointer; border: 1.5px solid var(--border);
@@ -126,7 +135,6 @@
   .tp-media  { background: #fef3c7; color: #92600a; }
   .tp-donado { background: #dbeafe; color: #1d4ed8; }
   .b-sustento { font-size: 11px; color: var(--text2); margin-top: 3px; line-height: 1.4; }
-  .b-obs { font-size: 11px; color: var(--warn); margin-top: 3px; font-weight: 600; line-height: 1.4; }
 
   .tipo-resumen {
     background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
@@ -264,7 +272,7 @@
     <div id="lista-ben"></div>
   </div>
 
-  <button class="btn-primary" onclick="enviarPlaneacion()">📤 Enviar demanda al nutriólogo</button>
+  <button class="btn-primary" onclick="enviarPlaneacion()">📤 Enviar demanda al encargado de paquetes</button>
   <div class="envio-ok" id="envio-ok"></div>
 
   <button class="btn-secundario" onclick="toggleReporte()">📊 Generar reporte de la comunidad</button>
@@ -361,16 +369,18 @@ function renderLista() {
       const tb = tipoBadge(b.tipo);
       return `
       <div class="ben-row">
-        <div class="b-info">
-          <div class="b-name">${b.nom} <span class="tp-badge ${tb.cls}">${tb.txt}</span></div>
-          <div class="b-sub">${b.int} integrantes · ${b.tel}</div>
-          ${b.sustento ? `<div class="b-sustento">📄 Sustento: ${b.sustento}</div>` : ''}
-          ${b.obs ? `<div class="b-obs">📌 ${b.obs}</div>` : ''}
+        <div class="ben-top">
+          <div class="b-info">
+            <div class="b-name">${b.nom} <span class="tp-badge ${tb.cls}">${tb.txt}</span></div>
+            <div class="b-sub">${b.int} integrantes · ${b.tel}</div>
+            ${b.sustento ? `<div class="b-sustento">📄 Sustento: ${b.sustento}</div>` : ''}
+          </div>
+          <div class="asist-toggle">
+            <button class="asist-btn ${b.asiste ? 'si' : ''}" onclick="setAsiste(${i}, true)">Sí va</button>
+            <button class="asist-btn ${!b.asiste ? 'no' : ''}" onclick="setAsiste(${i}, false)">No</button>
+          </div>
         </div>
-        <div class="asist-toggle">
-          <button class="asist-btn ${b.asiste ? 'si' : ''}" onclick="setAsiste(${i}, true)">Sí va</button>
-          <button class="asist-btn ${!b.asiste ? 'no' : ''}" onclick="setAsiste(${i}, false)">No</button>
-        </div>
+        <input class="obs-input" type="text" placeholder="📝 Observación / justificación (opcional)" value="${(b.obs || '').replace(/"/g, '&quot;')}" oninput="setObs(${i}, this.value)">
       </div>
     `; }).join('') || '<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px">Sin resultados</div>';
 
@@ -399,6 +409,10 @@ function renderTipoResumen(lista) {
 function setAsiste(i, val) {
   COMUNIDADES[comActiva][i].asiste = val;
   renderLista();
+}
+
+function setObs(i, val) {
+  COMUNIDADES[comActiva][i].obs = val;
 }
 
 function toggleReporte() {
@@ -454,7 +468,7 @@ function enviarPlaneacion() {
   const lista = COMUNIDADES[comActiva];
   const si = lista.filter(b => b.asiste).length;
   const ok = document.getElementById('envio-ok');
-  ok.innerHTML = `✅ <strong>Demanda enviada al nutriólogo:</strong> ${comActiva} necesita <strong>${si} paquetes</strong> para el reparto de hoy. La verá al instante en su módulo de planeación.`;
+  ok.innerHTML = `✅ <strong>Demanda enviada al encargado de paquetes:</strong> ${comActiva} necesita <strong>${si} paquetes</strong> para el reparto de hoy. La verá al instante en su módulo de planeación.`;
   ok.style.display = 'block';
   showToast(`${comActiva}: ${si} paquetes solicitados ✓`);
 }
