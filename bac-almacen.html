@@ -370,7 +370,7 @@ const RESCATES = [
       { art:'Pasta',             grupo:'Abarrotes',         kg:40 },
       { art:'Jabón de baño',     grupo:'No comestible',     kg:30 },
     ]},
-  { id:'DON-0522-3', icon:'🎁', tipo:'red', origen:'Donativo directo · Red BAMX', detalle:'Tarima de abarrotes surtidos', kg:420, estado:'pend',
+  { id:'CAN-0522-3', icon:'🔗', tipo:'red', origen:'Canalización · Red BAMX', detalle:'Pedido gestionado con cuota de recuperación, recogido con unidad propia', kg:420, estado:'pend',
     prellenado:[
       { art:'Frijol negro',   grupo:'Abarrotes',         kg:150 },
       { art:'Aceite vegetal', grupo:'Abarrotes',         kg:90 },
@@ -457,7 +457,7 @@ function abrirRescate(id) {
 function renderComparativo() {
   const r = RESCATES.find(x => x.id === rescateSel);
   if (!r || !r.declarado) {
-    document.getElementById('compara-rows').innerHTML = '<div style="font-size:12px;color:var(--text2)">Donativo directo — sin declaración previa del chofer para comparar.</div>';
+    document.getElementById('compara-rows').innerHTML = '<div style="font-size:12px;color:var(--text2)">Sin app móvil de origen — se capturó directo en almacén, no hay declaración previa del chofer para comparar.</div>';
     return;
   }
   const recibidoPorGrupo = {};
