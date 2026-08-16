@@ -252,6 +252,24 @@
   .reporte-panel td.num { text-align: right; font-family: var(--display); font-weight: 600; }
   .reporte-panel tfoot td { border-top: 2px solid var(--accent); border-bottom: none; font-weight: 700; }
   .rep-title { font-family: var(--display); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .rep-ayuda { margin-top: 14px; background: var(--accent-bg); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--accent-light); }
+  .rep-ayuda strong { color: var(--accent); }
+
+  .ayuda-panel { margin-top: 18px; }
+  .ayuda-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .ayuda-item {
+    background: var(--surface2); border-radius: 12px; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .ayuda-label { font-size: 13px; font-weight: 600; }
+  .ayuda-stepper { display: flex; align-items: center; gap: 10px; }
+  .ayuda-stepper button {
+    width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--surface); font-size: 16px; font-weight: 600; color: var(--accent);
+    cursor: pointer; font-family: var(--sans);
+  }
+  .ayuda-stepper button:active { background: var(--accent-bg); }
+  .ayuda-val { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--accent); min-width: 22px; text-align: center; }
 
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -412,6 +430,33 @@
       </div>
     </div>
 
+    <div class="panel ayuda-panel">
+      <div class="panel-head">
+        <h3>☕ Desayunos y ayuda inmediata del día</h3>
+        <span class="ph-sub">personas en situación de calle y casos especiales que llegan sin cita</span>
+      </div>
+      <div class="panel-body">
+        <div class="ayuda-grid">
+          <div class="ayuda-item">
+            <div class="ayuda-label">☕ Desayunos entregados hoy</div>
+            <div class="ayuda-stepper">
+              <button onclick="cambiarAyuda('desayunos', -1)">−</button>
+              <div class="ayuda-val" id="ayuda-desayunos">0</div>
+              <button onclick="cambiarAyuda('desayunos', 1)">+</button>
+            </div>
+          </div>
+          <div class="ayuda-item">
+            <div class="ayuda-label">📦 Paquetes de ayuda inmediata</div>
+            <div class="ayuda-stepper">
+              <button onclick="cambiarAyuda('paquetes', -1)">−</button>
+              <div class="ayuda-val" id="ayuda-paquetes">0</div>
+              <button onclick="cambiarAyuda('paquetes', 1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button class="btn-primary" onclick="toggleReporteInst()">📋 Generar reporte de entregas a instituciones</button>
 
     <div class="reporte-panel" id="reporte-inst">
@@ -423,6 +468,7 @@
           <tfoot id="rep-inst-foot"></tfoot>
         </table>
       </div>
+      <div class="rep-ayuda" id="rep-ayuda"></div>
     </div>
   </div>
 </div>
@@ -475,6 +521,12 @@ let dia = 'hoy';
 let comunidadEditando = 0;
 let institucionEditando = 0;
 let ordenNum = 0;
+let ayudaInmediata = { desayunos: 0, paquetes: 0 };
+
+function cambiarAyuda(tipo, d) {
+  ayudaInmediata[tipo] = Math.max(0, ayudaInmediata[tipo] + d);
+  document.getElementById('ayuda-' + tipo).textContent = ayudaInmediata[tipo];
+}
 
 // ═══════════ Tabs de modo ═══════════
 function switchModo(modo, el) {
@@ -705,6 +757,11 @@ function toggleReporteInst() {
     <td class="num">$${totCuota.toLocaleString()}</td>
     <td class="num">$${totKg > 0 ? (totCuota/totKg).toFixed(2) : '0.00'}</td>
   </tr>`;
+
+  const ayudaEl = document.getElementById('rep-ayuda');
+  if (ayudaEl) {
+    ayudaEl.innerHTML = `☕ <strong>${ayudaInmediata.desayunos}</strong> desayunos entregados · 📦 <strong>${ayudaInmediata.paquetes}</strong> paquetes de ayuda inmediata (personas de casos especiales, sin cita)`;
+  }
 
   panel.style.display = 'block';
   panel.scrollIntoView({ behavior:'smooth', block:'start' });

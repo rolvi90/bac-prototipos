@@ -62,6 +62,41 @@
   .ruta-progress .rp-val { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--accent); }
   .rp-kg { text-align: right; }
 
+  /* ── Editor de recorrido ── */
+  .btn-editar-recorrido {
+    width: 100%; margin-top: 12px; padding: 12px;
+    background: var(--surface); border: 1.5px dashed var(--accent-light);
+    border-radius: 12px; color: var(--accent); font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: var(--sans);
+  }
+  .btn-editar-recorrido:active { background: var(--accent-bg); }
+  .recorrido-editor {
+    margin: 12px 16px 0; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 14px 16px;
+  }
+  .re-title { font-family: var(--display); font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .re-sub { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 10px; }
+  .re-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .re-row:last-child { border-bottom: none; }
+  .re-row .p-icon {
+    width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+    background: var(--surface2); display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .re-row .p-info { flex: 1; min-width: 0; }
+  .re-row .p-name { font-size: 13px; font-weight: 600; }
+  .re-row .p-sub { font-size: 11px; color: var(--text2); }
+  .btn-re-toggle {
+    font-size: 11px; font-weight: 700; padding: 7px 12px; border-radius: 20px;
+    cursor: pointer; font-family: var(--sans); white-space: nowrap; border: 1.5px solid;
+  }
+  .btn-re-add { background: var(--accent-bg); border-color: var(--accent-light); color: var(--accent); }
+  .btn-re-remove { background: #fee2e2; border-color: #991b1b; color: #991b1b; }
+  .btn-re-locked { background: var(--surface2); border-color: var(--border); color: var(--text2); cursor: not-allowed; }
+
   /* ── Lista de paradas ── */
   .paradas { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
   .parada {
@@ -225,7 +260,7 @@
 <div class="header">
   <div class="header-top">
     <span class="logo">🚚</span>
-    <span class="folio-badge" id="h-folio">RUTA-0522</span>
+    <span class="folio-badge" id="h-folio">CAMIÓN C-03</span>
   </div>
   <h1>Rescate de alimentos</h1>
   <p class="sub">Martes 22 · Chofer: Juan Pérez · Unidad C-03</p>
@@ -241,6 +276,17 @@
     <div class="rp-label">Kg rescatados hoy</div>
     <div class="rp-val" id="rp-kg">0</div>
   </div>
+</div>
+
+<div style="padding:0 16px">
+  <button class="btn-editar-recorrido" onclick="toggleEditor()" id="btn-editar-recorrido">✏️ Agregar o quitar aliados de mi recorrido</button>
+</div>
+
+<!-- Editor de recorrido -->
+<div class="recorrido-editor" id="recorrido-editor" style="display:none">
+  <div class="re-title">🗺️ Todos tus aliados asignados</div>
+  <div class="re-sub">Cada camión tiene su lista completa de aliados. Agrega o quita según las necesidades de hoy — solo puedes quitar los que aún no has visitado.</div>
+  <div id="re-list"></div>
 </div>
 
 <div style="height:12px"></div>
@@ -333,19 +379,28 @@ const GRUPOS = [
   { id:'ves',  icon:'👕', name:'Vestimenta (ropa)' },
 ];
 
-const PARADAS = [
-  { id:1, icon:'🏪', nombre:'Soriana Centro',       dir:'Av. Juárez 120',        estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
-  { id:2, icon:'🏬', nombre:'HEB Valle',            dir:'Av. Gonzalitos 340',    estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
-  { id:3, icon:'🏪', nombre:'Walmart Universidad',  dir:'Av. Universidad 899',   estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
-  { id:4, icon:'🛒', nombre:'Costco Cumbres',       dir:'Paseo de los Leones',   estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
-  { id:5, icon:'🍎', nombre:'Mercado de Abastos',   dir:'Bodega 24, Estrella',   estado:'pend', llegada:'', salida:'', kg:{}, obs:'' },
+// Catálogo completo de aliados de este camión. El chofer arma su recorrido
+// del día agregando o quitando aliados según las necesidades de hoy.
+const ALIADOS = [
+  { id:1, icon:'🏪', nombre:'Soriana Centro',       dir:'Av. Juárez 120',          estado:'pend', llegada:'', salida:'', kg:{}, obs:'', enRecorrido:true },
+  { id:2, icon:'🏬', nombre:'HEB Valle',            dir:'Av. Gonzalitos 340',      estado:'pend', llegada:'', salida:'', kg:{}, obs:'', enRecorrido:true },
+  { id:3, icon:'🏪', nombre:'Walmart Universidad',  dir:'Av. Universidad 899',     estado:'pend', llegada:'', salida:'', kg:{}, obs:'', enRecorrido:true },
+  { id:4, icon:'🛒', nombre:'Costco Cumbres',       dir:'Paseo de los Leones',     estado:'pend', llegada:'', salida:'', kg:{}, obs:'', enRecorrido:true },
+  { id:5, icon:'🍎', nombre:'Mercado de Abastos',   dir:'Bodega 24, Estrella',     estado:'pend', llegada:'', salida:'', kg:{}, obs:'', enRecorrido:true },
+  { id:6, icon:'🏪', nombre:'Soriana Valle Alto',   dir:'Av. Lázaro Cárdenas 500', estado:'pend', llegada:'', salida:'', kg:{}, obs:'', enRecorrido:false },
+  { id:7, icon:'🏬', nombre:'HEB Anáhuac',          dir:'Av. Universidad 1200',    estado:'pend', llegada:'', salida:'', kg:{}, obs:'', enRecorrido:false },
+  { id:8, icon:'🥖', nombre:'Panadería La Espiga',  dir:'Calle Hidalgo 45',        estado:'pend', llegada:'', salida:'', kg:{}, obs:'', enRecorrido:false },
 ];
 
+function paradasHoy() { return ALIADOS.filter(a => a.enRecorrido); }
+
 let paradaActiva = null;
+let editorAbierto = false;
 
 function renderLista() {
   const el = document.getElementById('lista-paradas');
-  el.innerHTML = PARADAS.map(p => {
+  const hoy = paradasHoy();
+  el.innerHTML = hoy.map(p => {
     const kg = totalKg(p.kg);
     const stClass = p.sinDonacion ? 'st-sindon' : (p.estado === 'done' ? 'st-done' : (p.estado === 'activo' ? 'st-activo' : 'st-pend'));
     const stTxt   = p.sinDonacion ? '🚫 Sin donación' : (p.estado === 'done' ? `✓ ${kg} kg` : (p.estado === 'activo' ? 'En sitio' : 'Pendiente'));
@@ -360,12 +415,58 @@ function renderLista() {
     </div>`;
   }).join('');
 
-  const done = PARADAS.filter(p => p.estado === 'done').length;
+  const done = hoy.filter(p => p.estado === 'done').length;
   document.getElementById('rp-done').textContent = done;
-  document.getElementById('rp-total').textContent = PARADAS.length;
-  document.getElementById('rp-kg').textContent = PARADAS.reduce((s,p) => s + totalKg(p.kg), 0).toLocaleString();
+  document.getElementById('rp-total').textContent = hoy.length;
+  document.getElementById('rp-kg').textContent = hoy.reduce((s,p) => s + totalKg(p.kg), 0).toLocaleString();
 
-  if (done === PARADAS.length) mostrarFin();
+  if (editorAbierto) renderEditor();
+
+  if (hoy.length > 0 && done === hoy.length) mostrarFin();
+}
+
+function toggleEditor() {
+  editorAbierto = !editorAbierto;
+  document.getElementById('recorrido-editor').style.display = editorAbierto ? 'block' : 'none';
+  document.getElementById('btn-editar-recorrido').textContent = editorAbierto ? '✓ Listo, ocultar lista de aliados' : '✏️ Agregar o quitar aliados de mi recorrido';
+  if (editorAbierto) renderEditor();
+}
+
+function renderEditor() {
+  document.getElementById('re-list').innerHTML = ALIADOS.map(a => {
+    let btn;
+    if (!a.enRecorrido) {
+      btn = `<button class="btn-re-toggle btn-re-add" onclick="toggleAliado(${a.id})">➕ Agregar</button>`;
+    } else if (a.estado === 'pend') {
+      btn = `<button class="btn-re-toggle btn-re-remove" onclick="toggleAliado(${a.id})">✕ Quitar</button>`;
+    } else {
+      btn = `<span class="btn-re-toggle btn-re-locked">En recorrido</span>`;
+    }
+    return `
+    <div class="re-row">
+      <div class="p-icon">${a.icon}</div>
+      <div class="p-info">
+        <div class="p-name">${a.nombre}</div>
+        <div class="p-sub">${a.dir}</div>
+      </div>
+      ${btn}
+    </div>`;
+  }).join('');
+}
+
+function toggleAliado(id) {
+  const a = ALIADOS.find(x => x.id === id);
+  if (!a) return;
+  if (a.enRecorrido) {
+    if (a.estado !== 'pend') { showToast('Ya iniciaste esta parada, no se puede quitar', true); return; }
+    a.enRecorrido = false;
+    showToast(`${a.nombre} quitada del recorrido de hoy`);
+  } else {
+    a.enRecorrido = true;
+    showToast(`${a.nombre} agregada al recorrido de hoy ✓`);
+  }
+  renderEditor();
+  renderLista();
 }
 
 function totalKg(kgObj) {
@@ -373,7 +474,7 @@ function totalKg(kgObj) {
 }
 
 function abrirParada(id) {
-  const p = PARADAS.find(x => x.id === id);
+  const p = ALIADOS.find(x => x.id === id);
   if (!p) return;
   paradaActiva = p;
   if (p.estado === 'pend') p.estado = 'activo';
@@ -469,14 +570,17 @@ function mostrarFin() {
   document.getElementById('lista-paradas').style.display = 'none';
   document.getElementById('detalle').style.display = 'none';
   document.querySelector('.demo-note').style.display = 'none';
+  document.getElementById('btn-editar-recorrido').style.display = 'none';
+  document.getElementById('recorrido-editor').style.display = 'none';
 
-  const totalDia = PARADAS.reduce((s,p) => s + totalKg(p.kg), 0);
+  const hoy = paradasHoy();
+  const totalDia = hoy.reduce((s,p) => s + totalKg(p.kg), 0);
   const porGrupo = GRUPOS.map(g => ({
-    ...g, kg: PARADAS.reduce((s,p) => s + (Number(p.kg[g.id]) || 0), 0)
+    ...g, kg: hoy.reduce((s,p) => s + (Number(p.kg[g.id]) || 0), 0)
   })).filter(g => g.kg > 0);
 
   document.getElementById('resumen-rows').innerHTML =
-    PARADAS.map(p => `
+    hoy.map(p => `
       <div class="resumen-row">
         <span>${p.sinDonacion ? '🚫' : p.icon} ${p.nombre} <span style="color:var(--text2);font-size:11px">(${p.llegada}–${p.salida})</span></span>
         <span class="rr-val">${p.sinDonacion ? 'Sin donación' : totalKg(p.kg) + ' kg'}</span>

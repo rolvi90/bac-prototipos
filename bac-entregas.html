@@ -522,6 +522,13 @@
         <div class="field"><label>Kg entregados</label><input type="number" id="fi-kg" min="0" oninput="updInstCuotaKg()"></div>
         <div class="field"><label>Cuota recibida ($)</label><input type="number" id="fi-cuota" min="0" step="10" oninput="updInstCuotaKg()"></div>
       </div>
+      <div class="field">
+        <label>Método de pago</label>
+        <select id="fi-metodo-pago">
+          <option value="Efectivo">💵 Efectivo</option>
+          <option value="Transferencia">🏦 Transferencia</option>
+        </select>
+      </div>
       <div class="cuota-box"><span>Cuota por kg entregado</span><strong id="fi-cuota-kg">$0.00</strong></div>
     </div>
   </div>
@@ -813,7 +820,7 @@ const INSTITUCIONES = [
 ];
 let instActiva = 0;
 const REPORTE_INST_PREVIO = [
-  { nombre:'Comedor Parroquial Santa Rosa', benef:48, kg:96, cuota:180 },
+  { nombre:'Comedor Parroquial Santa Rosa', benef:48, kg:96, cuota:180, metodoPago:'Efectivo' },
 ];
 let cierreInstDia = null;
 
@@ -846,9 +853,10 @@ function cerrarEntregaInst() {
   const ins = INSTITUCIONES[instActiva];
   const kg = Number(document.getElementById('fi-kg').value) || 0;
   const cuota = Number(document.getElementById('fi-cuota').value) || 0;
+  const metodoPago = document.getElementById('fi-metodo-pago').value;
   const obs = document.getElementById('fi-obs').value || 'Ninguna';
 
-  cierreInstDia = { nombre: ins.nombre, benef: ins.benef, kg, cuota };
+  cierreInstDia = { nombre: ins.nombre, benef: ins.benef, kg, cuota, metodoPago };
 
   document.getElementById('captura-inst').style.display = 'none';
   document.getElementById('pantalla-ok-inst').style.display = 'block';
@@ -857,7 +865,7 @@ function cerrarEntregaInst() {
     <div class="resumen-row"><span>Salida → llegada</span><span class="rr-val">${salida} → ${llegada}</span></div>
     <div class="resumen-row"><span>Beneficiarios</span><span class="rr-val">${ins.benef}</span></div>
     <div class="resumen-row"><span>Kg entregados</span><span class="rr-val">${kg} kg</span></div>
-    <div class="resumen-row"><span>Cuota recuperada</span><span class="rr-val">$${cuota.toLocaleString()}</span></div>
+    <div class="resumen-row"><span>Cuota recuperada</span><span class="rr-val">$${cuota.toLocaleString()} (${metodoPago === 'Efectivo' ? '💵' : '🏦'} ${metodoPago})</span></div>
     <div class="resumen-row"><span>Cuota por kg</span><span class="rr-val">$${kg > 0 ? (cuota/kg).toFixed(2) : '0.00'}</span></div>
     <div class="resumen-row"><span>Observaciones</span><span class="rr-val" style="max-width:55%">${obs}</span></div>
   `;
@@ -872,9 +880,9 @@ function renderReporteInstituciones(panel) {
   panel.innerHTML = `
     <div class="rep-title">📋 Reporte del día · instituciones</div>
     <table>
-      <thead><tr><th>Institución</th><th>Benef.</th><th>Kg</th><th>Cuota</th><th>$/kg</th></tr></thead>
-      <tbody>${filas.map(f => `<tr><td>${f.nombre}</td><td>${f.benef}</td><td>${f.kg}</td><td>$${f.cuota.toLocaleString()}</td><td>$${f.kg>0?(f.cuota/f.kg).toFixed(2):'0.00'}</td></tr>`).join('')}</tbody>
-      <tfoot><tr><td>Total</td><td>${tot.benef}</td><td>${tot.kg}</td><td>$${tot.cuota.toLocaleString()}</td><td>$${tot.kg>0?(tot.cuota/tot.kg).toFixed(2):'0.00'}</td></tr></tfoot>
+      <thead><tr><th>Institución</th><th>Benef.</th><th>Kg</th><th>Cuota</th><th>$/kg</th><th>Pago</th></tr></thead>
+      <tbody>${filas.map(f => `<tr><td>${f.nombre}</td><td>${f.benef}</td><td>${f.kg}</td><td>$${f.cuota.toLocaleString()}</td><td>$${f.kg>0?(f.cuota/f.kg).toFixed(2):'0.00'}</td><td>${f.metodoPago === 'Efectivo' ? '💵' : '🏦'} ${f.metodoPago}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><td>Total</td><td>${tot.benef}</td><td>${tot.kg}</td><td>$${tot.cuota.toLocaleString()}</td><td>$${tot.kg>0?(tot.cuota/tot.kg).toFixed(2):'0.00'}</td><td>—</td></tr></tfoot>
     </table>`;
 }
 

@@ -135,6 +135,18 @@
   .cg-diff.warn  { color: var(--warn); }
   .cg-diff.bad   { color: var(--danger); }
 
+  .tipo-hint {
+    margin: 0 18px 14px; padding: 10px 14px; border-radius: 10px;
+    font-size: 12px; line-height: 1.5; background: var(--accent-bg); color: var(--accent-light);
+  }
+
+  .rack-picker { display: flex; align-items: center; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .rack-picker select { padding: 5px 6px; font-size: 11px; min-width: 0; }
+  .rack-code {
+    font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-bg); padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+  }
+
   .add-row-btn {
     margin: 12px 18px; padding: 10px 16px;
     background: var(--surface2); border: 1px dashed var(--border);
@@ -240,6 +252,7 @@
         </div>
         <div id="compara-rows"></div>
       </div>
+      <div class="tipo-hint" id="tipo-hint"></div>
       <div class="tbl-wrap">
         <table>
           <thead>
@@ -297,8 +310,8 @@
     <div class="filtros" id="filtros">
       <button class="filtro-btn on" data-ub="todos" onclick="setFiltro(this)">Todo</button>
       <button class="filtro-btn" data-ub="seco" onclick="setFiltro(this)">🏬 Almacén seco</button>
-      <button class="filtro-btn" data-ub="refri" onclick="setFiltro(this)">❄️ Refrigerador</button>
-      <button class="filtro-btn" data-ub="cong" onclick="setFiltro(this)">🧊 Congelador</button>
+      <button class="filtro-btn" data-ub="refri" onclick="setFiltro(this)">❄️ Cuarto Frío 1</button>
+      <button class="filtro-btn" data-ub="cong" onclick="setFiltro(this)">🧊 Cuarto Frío 2</button>
     </div>
 
     <div class="inv-panel">
@@ -325,60 +338,70 @@
 
 <script>
 const GRUPOS = ['Frutas y verduras','Proteína','Lácteos','Panadería','Abarrotes','No comestible','Hogar','Vestimenta'];
-const UBICS = { seco:'🏬 Seco', refri:'❄️ Refrigerador', cong:'🧊 Congelador' };
+const UBICS = { seco:'🏬 Seco', refri:'❄️ Cuarto Frío 1', cong:'🧊 Cuarto Frío 2' };
+const HINTS_TIPO = {
+  rescate: '🥕 Este rescate viene de acopio local: la Fruta y Verdura se registra en <strong>una sola línea</strong>, sin desglosar por artículo.',
+  red:     '🔗 Viene de la red con costo: <strong>desglosa cada artículo</strong> para poder controlar el costo por producto.',
+  compra:  '🛒 Es una compra en mercado: <strong>desglosa cada artículo</strong> para poder controlar el costo por producto.',
+};
 
 // ── Rescates que llegan hoy (vienen del módulo de rescate) ──
+// tipo 'rescate' = acopio local (chofer en supermercados): la Fruta y Verdura
+// se registra en UNA sola línea, sin desglosar por artículo.
+// tipo 'compra' / 'red' = sí se desglosa cada artículo (control de costo).
 const RESCATES = [
-  { id:'RES-0522-1', icon:'🚚', origen:'Ruta matutina · Juan Pérez',  detalle:'Soriana Centro + HEB Valle', kg:385, estado:'pend',
-    declarado:{ 'Frutas y verduras':170, 'Proteína':55, 'Lácteos':80, 'Panadería':50, 'Abarrotes':30 },
+  { id:'RES-0522-1', icon:'🚚', tipo:'rescate', origen:'Camión C-03 · Juan Pérez',  detalle:'Soriana Centro + HEB Valle', kg:385, estado:'pend',
+    declarado:{ 'Frutas y verduras':165, 'Proteína':55, 'Lácteos':85, 'Panadería':50, 'Abarrotes':30 },
     prellenado:[
-      { art:'Manzana',        grupo:'Frutas y verduras', kg:60 },
-      { art:'Plátano',        grupo:'Frutas y verduras', kg:45 },
-      { art:'Tomate',         grupo:'Frutas y verduras', kg:38 },
-      { art:'Lechuga',        grupo:'Frutas y verduras', kg:22 },
-      { art:'Pollo entero',   grupo:'Proteína',          kg:55 },
-      { art:'Leche entera',   grupo:'Lácteos',           kg:60 },
-      { art:'Yogurt bebible', grupo:'Lácteos',           kg:25 },
-      { art:'Pan dulce',      grupo:'Panadería',         kg:50 },
-      { art:'Arroz',          grupo:'Abarrotes',         kg:30 },
+      { art:'Frutas y verduras', grupo:'Frutas y verduras', kg:165 },
+      { art:'Pollo entero',      grupo:'Proteína',          kg:55 },
+      { art:'Leche entera',      grupo:'Lácteos',           kg:60 },
+      { art:'Yogurt bebible',    grupo:'Lácteos',           kg:25 },
+      { art:'Pan dulce',         grupo:'Panadería',         kg:50 },
+      { art:'Arroz',             grupo:'Abarrotes',         kg:30 },
     ]},
-  { id:'RES-0522-2', icon:'🚚', origen:'Ruta vespertina · Pedro Solís', detalle:'Walmart Universidad + Costco', kg:290, estado:'pend',
-    declarado:{ 'Frutas y verduras':120, 'Proteína':35, 'Lácteos':20, 'Panadería':50, 'Abarrotes':40, 'No comestible':30 },
+  { id:'RES-0522-2', icon:'🚚', tipo:'rescate', origen:'Camión V-07 · Pedro Solís', detalle:'Walmart Universidad + Costco', kg:290, estado:'pend',
+    declarado:{ 'Frutas y verduras':115, 'Proteína':35, 'Lácteos':20, 'Panadería':50, 'Abarrotes':40, 'No comestible':30 },
     prellenado:[
-      { art:'Naranja',        grupo:'Frutas y verduras', kg:80 },
-      { art:'Zanahoria',      grupo:'Frutas y verduras', kg:35 },
-      { art:'Carne molida',   grupo:'Proteína',          kg:40 },
-      { art:'Queso panela',   grupo:'Lácteos',           kg:20 },
-      { art:'Pan de caja',    grupo:'Panadería',         kg:45 },
-      { art:'Pasta',          grupo:'Abarrotes',         kg:40 },
-      { art:'Jabón de baño',  grupo:'No comestible',     kg:30 },
+      { art:'Frutas y verduras', grupo:'Frutas y verduras', kg:115 },
+      { art:'Carne molida',      grupo:'Proteína',          kg:40 },
+      { art:'Queso panela',      grupo:'Lácteos',           kg:20 },
+      { art:'Pan de caja',       grupo:'Panadería',         kg:45 },
+      { art:'Pasta',             grupo:'Abarrotes',         kg:40 },
+      { art:'Jabón de baño',     grupo:'No comestible',     kg:30 },
     ]},
-  { id:'DON-0522-3', icon:'🎁', origen:'Donativo directo · Red BAMX', detalle:'Tarima de abarrotes surtidos', kg:420, estado:'pend',
+  { id:'DON-0522-3', icon:'🎁', tipo:'red', origen:'Donativo directo · Red BAMX', detalle:'Tarima de abarrotes surtidos', kg:420, estado:'pend',
     prellenado:[
       { art:'Frijol negro',   grupo:'Abarrotes',         kg:150 },
       { art:'Aceite vegetal', grupo:'Abarrotes',         kg:90 },
       { art:'Atún en lata',   grupo:'Abarrotes',         kg:100 },
       { art:'Galletas',       grupo:'Abarrotes',         kg:80 },
     ]},
+  { id:'COM-0522-4', icon:'🛒', tipo:'compra', origen:'Compra en mercado · Central de Abasto', detalle:'Complemento de fruta y verdura de temporada', kg:150, estado:'pend',
+    prellenado:[
+      { art:'Manzana',  grupo:'Frutas y verduras', kg:50 },
+      { art:'Naranja',  grupo:'Frutas y verduras', kg:60 },
+      { art:'Tomate',   grupo:'Frutas y verduras', kg:40 },
+    ]},
 ];
 
 // ── Inventario existente ──
 let INVENTARIO = [
-  { prod:'Arroz',           grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:220, fecha:'19 jul' },
-  { prod:'Frijol bayo',     grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:180, fecha:'18 jul' },
-  { prod:'Pasta',           grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:95,  fecha:'20 jul' },
-  { prod:'Aceite vegetal',  grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:75,  fecha:'15 jul' },
-  { prod:'Atún en lata',    grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:120, fecha:'12 jul' },
+  { prod:'Arroz',           grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:220, fecha:'19 jul', ubic:'A11' },
+  { prod:'Frijol bayo',     grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:180, fecha:'18 jul', ubic:'A12' },
+  { prod:'Pasta',           grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:95,  fecha:'20 jul', ubic:'A21' },
+  { prod:'Aceite vegetal',  grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:75,  fecha:'15 jul', ubic:'A22' },
+  { prod:'Atún en lata',    grupo:'Abarrotes',         ub:'seco',  sem:'v', kg:120, fecha:'12 jul', ubic:'B11' },
   { prod:'Manzana',         grupo:'Frutas y verduras', ub:'refri', sem:'a', kg:48,  fecha:'20 jul' },
-  { prod:'Plátano',         grupo:'Frutas y verduras', ub:'seco',  sem:'r', kg:15,  fecha:'19 jul' },
+  { prod:'Plátano',         grupo:'Frutas y verduras', ub:'seco',  sem:'r', kg:15,  fecha:'19 jul', ubic:'C16' },
   { prod:'Tomate',          grupo:'Frutas y verduras', ub:'refri', sem:'a', kg:32,  fecha:'20 jul' },
   { prod:'Lechuga',         grupo:'Frutas y verduras', ub:'refri', sem:'r', kg:8,   fecha:'19 jul' },
   { prod:'Pollo entero',    grupo:'Proteína',          ub:'cong',  sem:'v', kg:110, fecha:'17 jul' },
   { prod:'Carne molida',    grupo:'Proteína',          ub:'cong',  sem:'v', kg:65,  fecha:'16 jul' },
   { prod:'Leche entera',    grupo:'Lácteos',           ub:'refri', sem:'a', kg:90,  fecha:'20 jul' },
   { prod:'Queso panela',    grupo:'Lácteos',           ub:'refri', sem:'v', kg:35,  fecha:'21 jul' },
-  { prod:'Pan dulce',       grupo:'Panadería',         ub:'seco',  sem:'a', kg:40,  fecha:'21 jul' },
-  { prod:'Jabón de baño',   grupo:'No comestible',     ub:'seco',  sem:'v', kg:55,  fecha:'10 jul' },
+  { prod:'Pan dulce',       grupo:'Panadería',         ub:'seco',  sem:'a', kg:40,  fecha:'21 jul', ubic:'B21' },
+  { prod:'Jabón de baño',   grupo:'No comestible',     ub:'seco',  sem:'v', kg:55,  fecha:'10 jul', ubic:'B22' },
 ];
 
 let rescateSel = null;
@@ -413,11 +436,17 @@ function abrirRescate(id) {
   const r = RESCATES.find(x => x.id === id);
   if (!r || r.estado === 'done') return;
   rescateSel = id;
-  filas = r.prellenado.map((f, i) => ({ id:i, ...f, sem:'v', dest: sugerirDestino(f.grupo) }));
+  filas = r.prellenado.map((f, i) => {
+    const dest = sugerirDestino(f.grupo);
+    return { id:i, ...f, sem:'v', dest, rack: dest === 'seco' ? { letra:'A', nivel:1, pos:1 } : null };
+  });
 
   document.getElementById('cl-titulo').textContent = `${r.icon} ${r.id} — ${r.origen}`;
-  document.getElementById('cl-sub').textContent = `${r.detalle} · El chofer preclasificó por grupo; aquí se detalla artículo, estado y destino.`;
+  document.getElementById('cl-sub').textContent = r.declarado
+    ? `${r.detalle} · El chofer preclasificó por grupo; aquí se detalla artículo, estado y destino.`
+    : `${r.detalle} · Sin app móvil de origen; se captura directo en almacén.`;
   document.getElementById('cl-kg').textContent = `${r.kg} kg declarados`;
+  document.getElementById('tipo-hint').innerHTML = HINTS_TIPO[r.tipo] || '';
   document.getElementById('clasif-panel').style.display = 'block';
   renderRescates();
   renderFilas();
@@ -477,16 +506,35 @@ function renderFilas() {
         </div>
       </td>
       <td>
-        <select class="cell-input" onchange="filas[${f.id}].dest = this.value">
+        <select class="cell-input" onchange="setDest(${f.id}, this.value)">
           <option value="seco"  ${f.dest === 'seco'  ? 'selected' : ''}>🏬 Almacén seco</option>
-          <option value="refri" ${f.dest === 'refri' ? 'selected' : ''}>❄️ Refrigerador</option>
-          <option value="cong"  ${f.dest === 'cong'  ? 'selected' : ''}>🧊 Congelador</option>
+          <option value="refri" ${f.dest === 'refri' ? 'selected' : ''}>❄️ Cuarto Frío 1</option>
+          <option value="cong"  ${f.dest === 'cong'  ? 'selected' : ''}>🧊 Cuarto Frío 2</option>
           <option value="merma" ${f.dest === 'merma' ? 'selected' : ''}>🗑️ Merma (desecho)</option>
         </select>
+        ${f.dest === 'seco' ? `
+        <div class="rack-picker">
+          <select onchange="filas[${f.id}].rack.letra = this.value; renderFilas()">
+            ${['A','B','C'].map(l => `<option ${f.rack.letra===l?'selected':''}>${l}</option>`).join('')}
+          </select>
+          <select onchange="filas[${f.id}].rack.nivel = Number(this.value); renderFilas()">
+            ${[1,2,3,4].map(n => `<option value="${n}" ${f.rack.nivel===n?'selected':''}>Niv ${n}</option>`).join('')}
+          </select>
+          <select onchange="filas[${f.id}].rack.pos = Number(this.value); renderFilas()">
+            ${[1,2,3,4,5,6].map(p => `<option value="${p}" ${f.rack.pos===p?'selected':''}>Pos ${p}</option>`).join('')}
+          </select>
+          <span class="rack-code">${f.rack.letra}${f.rack.nivel}${f.rack.pos}</span>
+        </div>` : ''}
       </td>
     </tr>
   `).join('');
   updSemResumen();
+}
+
+function setDest(fid, val) {
+  filas[fid].dest = val;
+  if (val === 'seco' && !filas[fid].rack) filas[fid].rack = { letra:'A', nivel:1, pos:1 };
+  renderFilas();
 }
 
 function setSem(fid, s) {
@@ -504,7 +552,7 @@ function updSemResumen() {
 }
 
 function agregarFila() {
-  filas.push({ id: filas.length, art:'', grupo:'Abarrotes', kg:0, sem:'v', dest:'seco' });
+  filas.push({ id: filas.length, art:'', grupo:'Abarrotes', kg:0, sem:'v', dest:'seco', rack:{ letra:'A', nivel:1, pos:1 } });
   renderFilas();
 }
 
@@ -517,9 +565,10 @@ function confirmarRecepcion() {
     if (!f.art || f.kg <= 0) return;
     if (f.dest === 'merma') { aMerma += f.kg; return; }
     aInv += f.kg;
+    const ubic = f.dest === 'seco' && f.rack ? `${f.rack.letra}${f.rack.nivel}${f.rack.pos}` : null;
     const existente = INVENTARIO.find(i => i.prod.toLowerCase() === f.art.toLowerCase() && i.ub === f.dest && i.sem === f.sem);
     if (existente) existente.kg += f.kg;
-    else INVENTARIO.push({ prod:f.art, grupo:f.grupo, ub:f.dest, sem:f.sem, kg:f.kg, fecha:hoy });
+    else INVENTARIO.push({ prod:f.art, grupo:f.grupo, ub:f.dest, sem:f.sem, kg:f.kg, fecha:hoy, ubic });
   });
   r.estado = 'done';
   rescateSel = null;
@@ -544,7 +593,7 @@ function renderInventario() {
     <tr class="${i.sem === 'r' ? 'alerta-row' : ''}">
       <td style="font-weight:600">${i.prod}</td>
       <td style="color:var(--text2)">${i.grupo}</td>
-      <td><span class="ub-badge ub-${i.ub}">${UBICS[i.ub]}</span></td>
+      <td><span class="ub-badge ub-${i.ub}">${UBICS[i.ub]}${i.ubic ? ' · ' + i.ubic : ''}</span></td>
       <td><span class="dot dot-${i.sem}"></span>${i.sem === 'v' ? 'Conservable' : i.sem === 'a' ? 'Poca vida' : 'Urgente'}</td>
       <td style="text-align:right; font-weight:600; font-family:var(--display)">${i.kg.toLocaleString()}</td>
       <td style="color:var(--text2)">${i.fecha}</td>
